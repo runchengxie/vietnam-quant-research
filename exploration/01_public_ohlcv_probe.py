@@ -1,12 +1,16 @@
 """Probe a public VCI/Vietcap endpoint without storing market data in Git.
 
 This is an availability and schema smoke test, not a production downloader.
-It records only metadata and quality counts under ``artifacts/``.
+It records only metadata and quality counts under the external data root's
+``metadata/`` directory. Use ``--data-root`` or
+``VIETNAM_QUANT_DATA_ROOT`` to override the location.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -17,7 +21,8 @@ import requests
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ARTIFACTS = REPO_ROOT / "artifacts"
+REPO_ARTIFACTS = REPO_ROOT / "artifacts"
+DEFAULT_EXTERNAL_DATA_ROOT = Path(r"D:\data\vietnam-quant-research")
 BASE_URL = "https://trading.vietcap.com.vn/api"
 HEADERS = {
     "Accept": "application/json, text/plain, */*",
@@ -151,7 +156,29 @@ def quality_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def resolve_data_root(cli_value: str | None) -> Path:
+    """Resolve the local data root, preferring the configured external disk."""
+    configured = cli_value or os.environ.get("VIETNAM_QUANT_DATA_ROOT")
+    if configured:
+        return Path(configured).expanduser()
+    if DEFAULT_EXTERNAL_DATA_ROOT.parent.exists():
+        return DEFAULT_EXTERNAL_DATA_ROOT
+    return REPO_ARTIFACTS
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--data-root",
+        help=(
+            "Local data root, e.g. D:\\data\\vietnam-quant-research. "
+            "Defaults to VIETNAM_QUANT_DATA_ROOT, then D:\\data if present."
+        ),
+    )
+    args = parser.parse_args()
+    data_root = resolve_data_root(args.data_root)
+    metadata_dir = data_root / "metadata"
+
     start = datetime(2024, 1, 1)
     end = datetime(2024, 1, 31) + timedelta(days=1)
     payload = {
@@ -163,6 +190,7 @@ def main() -> int:
     result: dict[str, Any] = {
         "retrieved_at_utc": datetime.utcnow().isoformat(timespec="seconds") + "Z",
         "endpoint": BASE_URL,
+        "storage": {"data_root": str(data_root), "metadata_dir": str(metadata_dir)},
         "test_window": {"start": start.date().isoformat(), "end": "2024-01-31"},
         "listing": {},
         "ohlcv": {},
@@ -282,8 +310,9 @@ def main() -> int:
                 else None,
             }
 
-    ARTIFACTS.mkdir(exist_ok=True)
-    (ARTIFACTS / "public_ohlcv_probe.json").write_text(
+    metadata_dir.mkdir(parents=True, exist_ok=True)
+    output_path = metadata_dir / "public_ohlcv_probe.json"
+    output_path.write_text(
         json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))

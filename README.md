@@ -24,6 +24,21 @@
 
 当前的第一轮公开接口探针见 [`exploration/01_public_ohlcv_probe.py`](exploration/01_public_ohlcv_probe.py)，配套 notebook 见 [`exploration/01_data_audit.ipynb`](exploration/01_data_audit.ipynb)。下一阶段建议扩展为覆盖 HOSE、HNX、UPCoM 的 20–50 只股票的 source-observation prototype，比较公开源、SSI 与 VSDC 的日线、证券状态和外资字段，再决定是否购买基本面或机构级行情数据。运行数据应保存在仓库之外。
 
+## 本地数据目录
+
+正式下载的数据不放进公开仓库，当前外部数据根目录为：
+
+```text
+D:\\data\\vietnam-quant-research\\
+├── raw/        # 来源原始响应或原始文件
+├── bronze/     # 初步标准化数据
+├── processed/  # 可供研究使用的数据集
+├── metadata/   # 抓取记录、质量审计和 source observations
+└── logs/       # 运行日志
+```
+
+探针脚本会优先将审计摘要写入该目录的 `metadata/`；也可以通过 `--data-root` 或 `VIETNAM_QUANT_DATA_ROOT` 指定其他本地路径。仓库中的 `data/`、`artifacts/`、CSV、Parquet 等均已忽略，避免把市场原始数据提交到 GitHub。
+
 ## 公开仓库安全
 
 请勿提交 API key、API secret、token、账号信息、商业数据原文件或受许可证限制的数据。未来如加入采集代码，应通过环境变量或本地密钥管理提供凭证，并将原始运行数据保留在仓库之外。

@@ -9,6 +9,7 @@ secrets/
 data/
 raw_data/
 outputs/
+artifacts/
 *.parquet
 *.csv
 *.jsonl
@@ -16,5 +17,6 @@ outputs/
 # Python and editor artifacts for future work
 __pycache__/
 .venv/
+.audit_lib/
 .idea/
 .vscode/

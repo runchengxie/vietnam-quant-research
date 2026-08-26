@@ -1,0 +1,20 @@
+# Credentials and local secrets
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# Local data and runtime outputs
+data/
+raw_data/
+outputs/
+*.parquet
+*.csv
+*.jsonl
+
+# Python and editor artifacts for future work
+__pycache__/
+.venv/
+.idea/
+.vscode/

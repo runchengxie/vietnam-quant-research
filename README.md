@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-首版是 docs-first 仓库，先回答“数据从哪里来、能拿到什么、成本多少、有哪些坑”，暂不提供数据采集代码、交易策略或投资建议。价格和服务条款截至 2026-08-27 整理，购买或接入前需要重新向供应商核实。
+当前是 docs-first 仓库，并已加入一个只读的公开日线可得性 smoke test；它先回答“数据从哪里来、能拿到什么、成本多少、有哪些坑”，不提供生产采集器、交易策略或投资建议。价格和服务条款截至 2026-08-27 整理，购买或接入前需要重新向供应商核实。
 
 ## 文档
 
@@ -12,6 +12,9 @@
 - [价格与人民币成本](docs/pricing-and-costs.md)
 - [推荐数据栈与落地路线](docs/recommended-data-stack.md)
 - [数据质量、回测与授权风险](docs/data-quality-and-risks.md)
+- [越南专项量化文献地图](docs/literature-vietnam-specific.md)
+- [跨市场论文解读](docs/literature-cross-market.md)
+- [公开日线数据可得性审计](docs/exploration-data-audit.md)
 
 ## 研究边界
 
@@ -19,7 +22,7 @@
 
 ## 下一步
 
-下一阶段建议先做一个只读的小样本 source-observation prototype：覆盖 HOSE、HNX、UPCoM 的 20–50 只股票，比较 vnstock 与 SSI/公开来源的日线、证券状态和外资字段，再决定是否购买基本面或机构级行情数据。运行数据应保存在仓库之外。
+当前的第一轮公开接口探针见 [`exploration/01_public_ohlcv_probe.py`](exploration/01_public_ohlcv_probe.py)，配套 notebook 见 [`exploration/01_data_audit.ipynb`](exploration/01_data_audit.ipynb)。下一阶段建议扩展为覆盖 HOSE、HNX、UPCoM 的 20–50 只股票的 source-observation prototype，比较公开源、SSI 与 VSDC 的日线、证券状态和外资字段，再决定是否购买基本面或机构级行情数据。运行数据应保存在仓库之外。
 
 ## 公开仓库安全
 

@@ -21,6 +21,14 @@
 python exploration/01_public_ohlcv_probe.py
 ```
 
+在 Windows 本机上，脚本默认优先使用 `D:\\data\\vietnam-quant-research`；也可以显式指定：
+
+```text
+python exploration/01_public_ohlcv_probe.py --data-root D:\\data\\vietnam-quant-research
+```
+
+本次探针只写入外部目录的 `metadata/public_ohlcv_probe.json`，不保存完整 OHLCV 原始行情。完整下载任务应分别写入外部目录的 `raw/`、`bronze/` 或 `processed/`，而不是公开仓库。
+
 本次使用的公开接口：
 
 - VCI/Vietcap 证券列表：`https://trading.vietcap.com.vn/api/price/symbols/getAll`

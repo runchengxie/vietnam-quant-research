@@ -89,6 +89,53 @@ class PriceDailyRecord(SerializableMixin):
 
 
 @dataclass(frozen=True)
+class ResearchPriceDailyRecord(PriceDailyRecord):
+    research_status: str = "selected"
+    arbitration_reason: str = "primary_valid"
+    research_eligible: bool = True
+    tradable: bool = True
+
+
+@dataclass(frozen=True)
+class SourceArbitrationReport(SerializableMixin):
+    symbol: str
+    primary_source: str
+    secondary_source: str | None = None
+    primary_row_count: int = 0
+    secondary_row_count: int = 0
+    selected_row_count: int = 0
+    primary_selected_count: int = 0
+    secondary_selected_count: int = 0
+    fallback_count: int = 0
+    quarantine_count: int = 0
+    zero_volume_count: int = 0
+    disagreement_count: int = 0
+    missing_both_count: int = 0
+    research_eligible_count: int = 0
+    tradable_count: int = 0
+    coverage_rate: float = 0.0
+    tradable_rate: float = 0.0
+    sample_disagreements: list[dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class PriceSemanticsReport(SerializableMixin):
+    symbol: str
+    primary_source: str
+    secondary_source: str | None = None
+    status: str = "unresolved"
+    matched_dates: int = 0
+    difference_count: int = 0
+    ratio_median: float | None = None
+    ratio_p90: float | None = None
+    ratio_max: float | None = None
+    relative_difference_median: float | None = None
+    relative_difference_p90: float | None = None
+    relative_difference_max: float | None = None
+    yearly: dict[str, dict[str, Any]] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class SourceObservation(SerializableMixin):
     observation_id: str
     source: str

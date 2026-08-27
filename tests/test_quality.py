@@ -2,7 +2,11 @@ from datetime import date
 
 from vietnam_quant.adapters.vci import normalize_price_bars
 from vietnam_quant.adapters.vci import normalize_exchange
-from vietnam_quant.quality import reconcile_price_bars, validate_price_bars
+from vietnam_quant.quality import (
+    arbitrate_price_bars,
+    reconcile_price_bars,
+    validate_price_bars,
+)
 from tests.conftest import make_price_row
 
 
@@ -32,3 +36,65 @@ def test_normalize_price_bars_keeps_raw_and_normalized_units():
     normalized = normalize_price_bars([row])[0]
     assert normalized.raw_close == 0.0105
     assert normalized.normalized_close == 10.5
+
+
+def test_arbitration_prefers_valid_primary_and_marks_tradability():
+    rows, report, semantics = arbitrate_price_bars(
+        [make_price_row(symbol="FPT", trading_date=date(2024, 1, 2), close=10, volume=100)],
+        [make_price_row(symbol="FPT", trading_date=date(2024, 1, 2), high=10.02, close=10.02, volume=100, source="kbs")],
+        primary_source="vci", secondary_source="kbs",
+    )
+    assert rows[0].source == "vci"
+    assert rows[0].arbitration_reason == "primary_valid"
+    assert rows[0].research_eligible is True
+    assert rows[0].tradable is True
+    assert "source_disagreement" in rows[0].quality_flags
+    assert report.disagreement_count == 1
+    assert semantics.status == "unresolved"
+
+
+def test_arbitration_falls_back_to_valid_secondary_without_rewriting_bronze_row():
+    invalid_primary = make_price_row(
+        symbol="FPT", trading_date=date(2024, 1, 2), open=10, high=8, low=7, close=9, volume=100
+    )
+    valid_secondary = make_price_row(
+        symbol="FPT", trading_date=date(2024, 1, 2), close=10, volume=100, source="kbs"
+    )
+    rows, report, _ = arbitrate_price_bars(
+        [invalid_primary], [valid_secondary], primary_source="vci", secondary_source="kbs"
+    )
+    assert rows[0].source == "kbs"
+    assert rows[0].arbitration_reason == "secondary_fallback"
+    assert rows[0].research_eligible is True
+    assert rows[0].raw_close == 0.01
+    assert report.fallback_count == 1
+    assert invalid_primary.source == "vci"
+    assert "invalid_ohlc" not in invalid_primary.quality_flags
+
+
+def test_arbitration_quarantines_when_both_sources_are_invalid():
+    primary = make_price_row(
+        symbol="A32", trading_date=date(2024, 1, 2), open=10, high=8, low=7, close=9, volume=100
+    )
+    secondary = make_price_row(
+        symbol="A32", trading_date=date(2024, 1, 2), open=11, high=9, low=8, close=10, volume=100
+    )
+    rows, report, _ = arbitrate_price_bars(
+        [primary], [secondary], primary_source="vci", secondary_source="kbs"
+    )
+    assert rows[0].research_status == "quarantined"
+    assert rows[0].research_eligible is False
+    assert rows[0].tradable is False
+    assert rows[0].arbitration_reason == "both_invalid_primary_kept"
+    assert report.quarantine_count == 1
+
+
+def test_arbitration_keeps_valid_zero_volume_marked_not_tradable():
+    rows, report, _ = arbitrate_price_bars(
+        [make_price_row(symbol="A32", trading_date=date(2024, 1, 2), close=10, volume=0)],
+        [],
+        primary_source="vci", secondary_source="kbs",
+    )
+    assert rows[0].research_eligible is True
+    assert rows[0].tradable is False
+    assert report.zero_volume_count == 1

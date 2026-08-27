@@ -2,8 +2,10 @@ from datetime import date
 
 from vietnam_quant.adapters.vci import normalize_price_bars
 from vietnam_quant.adapters.vci import normalize_exchange
+from vietnam_quant.schemas import SourceArbitrationReport
 from vietnam_quant.quality import (
     arbitrate_price_bars,
+    assess_research_quality,
     reconcile_price_bars,
     validate_price_bars,
 )
@@ -98,3 +100,25 @@ def test_arbitration_keeps_valid_zero_volume_marked_not_tradable():
     assert rows[0].research_eligible is True
     assert rows[0].tradable is False
     assert report.zero_volume_count == 1
+
+
+def test_research_quality_passes_with_quarantine_but_blocks_factor_ready():
+    reports = [
+        SourceArbitrationReport(
+            symbol="A32", primary_source="vci", secondary_source="kbs",
+            primary_row_count=100, secondary_row_count=90, selected_row_count=100,
+            primary_selected_count=95, secondary_selected_count=5, fallback_count=5,
+            quarantine_count=5, zero_volume_count=10, disagreement_count=3,
+            missing_both_count=0, research_eligible_count=95, tradable_count=85,
+            coverage_rate=0.95, tradable_rate=0.85, sample_disagreements=[],
+        )
+    ]
+    result = assess_research_quality(
+        reports,
+        expected_symbols=["A32"],
+        observations=[{"symbol": "A32", "source": "vci", "response_status": 200, "row_count": 100}],
+        semantics_status="unresolved",
+    )
+    assert result["status"] == "PASS_WITH_QUARANTINE"
+    assert result["factor_ready"] is False
+    assert result["quarantined_rows"] == 5

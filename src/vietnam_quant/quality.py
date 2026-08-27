@@ -301,6 +301,63 @@ def arbitrate_price_bars(
     return selected_rows, report, semantics
 
 
+def _observation_value(observation: Any, field: str, default: Any = None) -> Any:
+    if isinstance(observation, dict):
+        return observation.get(field, default)
+    return getattr(observation, field, default)
+
+
+def assess_research_quality(
+    reports: Iterable[SourceArbitrationReport],
+    *,
+    expected_symbols: Iterable[str],
+    observations: Iterable[Any],
+    min_coverage: float = 0.90,
+    semantics_status: str = "unresolved",
+) -> dict[str, Any]:
+    """Assess whether the derived research view is usable without hiding caveats."""
+    expected = list(dict.fromkeys(symbol.upper() for symbol in expected_symbols))
+    report_by_symbol = {report.symbol.upper(): report for report in reports}
+    observations_by_symbol: dict[str, list[Any]] = defaultdict(list)
+    for observation in observations:
+        symbol = _observation_value(observation, "symbol")
+        if symbol:
+            observations_by_symbol[str(symbol).upper()].append(observation)
+    missing_symbols = [symbol for symbol in expected if symbol not in report_by_symbol]
+    failed_observation_symbols = [
+        symbol for symbol in expected
+        if not any(
+            _observation_value(observation, "response_status") == 200
+            and (_observation_value(observation, "row_count", 0) or 0) > 0
+            and _observation_value(observation, "error_type") is None
+            for observation in observations_by_symbol.get(symbol, [])
+        )
+    ]
+    low_coverage_symbols = [
+        symbol for symbol in expected
+        if symbol in report_by_symbol and report_by_symbol[symbol].coverage_rate < min_coverage
+    ]
+    status = "FAIL" if missing_symbols or failed_observation_symbols or low_coverage_symbols else "PASS"
+    quarantined_rows = sum(report.quarantine_count for report in report_by_symbol.values())
+    eligible_rows = sum(report.research_eligible_count for report in report_by_symbol.values())
+    tradable_rows = sum(report.tradable_count for report in report_by_symbol.values())
+    if status == "PASS" and quarantined_rows:
+        status = "PASS_WITH_QUARANTINE"
+    return {
+        "status": status,
+        "factor_ready": status in {"PASS", "PASS_WITH_QUARANTINE"} and semantics_status == "confirmed",
+        "symbol_count": len(expected),
+        "missing_symbols": missing_symbols,
+        "failed_observation_symbols": failed_observation_symbols,
+        "low_coverage_symbols": low_coverage_symbols,
+        "quarantined_rows": quarantined_rows,
+        "research_eligible_rows": eligible_rows,
+        "tradable_rows": tradable_rows,
+        "min_coverage": min_coverage,
+        "price_semantics_status": semantics_status,
+    }
+
+
 def reconcile_price_bars(
     primary: Iterable[PriceDailyRecord],
     secondary: Iterable[PriceDailyRecord],

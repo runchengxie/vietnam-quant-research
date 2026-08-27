@@ -118,3 +118,35 @@ def test_price_daily_record_can_carry_adjusted_close_without_overwriting_raw_clo
     assert payload["normalized_close"] == 101000.0
     assert payload["adjusted_close"] == 98000.0
     assert payload["price_semantics"] == "raw_and_adjusted_close"
+
+
+def test_price_daily_record_preserves_legacy_positional_field_order():
+    record = PriceDailyRecord(
+        "FPT",
+        date(2024, 1, 2),
+        "vci",
+        "2024-01-02",
+        None,
+        "HOSE",
+        100.0,
+        101.0,
+        99.0,
+        100.5,
+        1000.0,
+        "VND",
+        100.0,
+        101.0,
+        99.0,
+        100.5,
+        "VND",
+        "shares_or_source_units",
+        [],
+        "observation",
+        "parser",
+        "daily-v0",
+    )
+
+    assert record.volume_unit == "shares_or_source_units"
+    assert record.quality_flags == []
+    assert record.source_observation_id == "observation"
+    assert record.adjusted_close is None

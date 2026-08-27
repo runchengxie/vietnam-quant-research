@@ -110,6 +110,8 @@ def parse_hnx_upcom_price_anchor(
         "high": _column_index(headers, "caonhat", "high"),
         "low": _column_index(headers, "thapnhat", "low"),
     }
+    if indexes["symbol"] is None:
+        raise ValueError("HNX price table is missing symbol column")
     close_index = indexes["close"]
     if close_index is None:
         raise ValueError("HNX price table is missing close column")
@@ -119,9 +121,7 @@ def parse_hnx_upcom_price_anchor(
     selected: list[str] | None = None
     for row in data_rows:
         symbol_index = indexes["symbol"]
-        if symbol_index is None or (
-            symbol_index < len(row) and row[symbol_index].strip().upper() == target
-        ):
+        if symbol_index < len(row) and row[symbol_index].strip().upper() == target:
             selected = row
             break
     if selected is None:

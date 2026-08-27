@@ -82,6 +82,9 @@ def parse_corporate_action_events(payload: Any) -> list[CorporateActionEvent]:
         source_url_value = _first(row, "source_url", "sourceUrl", "url")
         if not source_url_value:
             raise ValueError("corporate action row is missing source_url")
+        confidence_value = _first(row, "confidence")
+        if not confidence_value:
+            raise ValueError("corporate action row is missing confidence")
 
         dates = {
             "announcement_date": _as_date(_first(row, "announcement_date", "announcementDate")),
@@ -90,7 +93,7 @@ def parse_corporate_action_events(payload: Any) -> list[CorporateActionEvent]:
             "payment_date": _as_date(_first(row, "payment_date", "paymentDate")),
             "listing_date": _as_date(_first(row, "listing_date", "listingDate")),
         }
-        if not any(dates[key] is not None for key in ("ex_date", "record_date", "payment_date", "listing_date")):
+        if not any(value is not None for value in dates.values()):
             raise ValueError("corporate action row is missing an event date")
 
         symbol = str(symbol_value).strip().upper()
@@ -98,7 +101,7 @@ def parse_corporate_action_events(payload: Any) -> list[CorporateActionEvent]:
         source_url = str(source_url_value).strip()
         first_event_date = next(
             dates[key]
-            for key in ("ex_date", "record_date", "payment_date", "listing_date")
+            for key in dates
             if dates[key] is not None
         )
         event_id = str(
@@ -123,7 +126,7 @@ def parse_corporate_action_events(payload: Any) -> list[CorporateActionEvent]:
                 share_ratio=_as_float(_first(row, "share_ratio", "shareRatio")),
                 rights_ratio=_as_float(_first(row, "rights_ratio", "rightsRatio")),
                 source_kind=str(_first(row, "source_kind", "sourceKind") or "secondary_discovery"),
-                confidence=str(_first(row, "confidence") or "discovered"),
+                confidence=str(confidence_value),
                 notes=_first(row, "notes"),
             )
         )

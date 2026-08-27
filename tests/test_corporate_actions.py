@@ -29,6 +29,7 @@ def test_parse_corporate_actions_rejects_duplicate_event_ids():
             "event_type": "cash_dividend",
             "ex_date": "2024-01-02",
             "source_url": "https://example.test/event",
+            "confidence": "low",
         },
         {
             "event_id": "duplicate",
@@ -36,6 +37,7 @@ def test_parse_corporate_actions_rejects_duplicate_event_ids():
             "event_type": "cash_dividend",
             "ex_date": "2024-01-03",
             "source_url": "https://example.test/event-2",
+            "confidence": "low",
         },
     ]
 
@@ -43,12 +45,41 @@ def test_parse_corporate_actions_rejects_duplicate_event_ids():
         parse_corporate_action_events(payload)
 
 
+def test_parse_corporate_actions_requires_confidence():
+    payload = {
+        "symbol": "APG",
+        "event_type": "cash_dividend",
+        "ex_date": "2024-01-02",
+        "source_url": "https://example.test/event",
+    }
+
+    with pytest.raises(ValueError, match="confidence"):
+        parse_corporate_action_events([payload])
+
+
+def test_parse_corporate_actions_accepts_announcement_date_as_only_known_date():
+    events = parse_corporate_action_events(
+        [
+            {
+                "symbol": "APG",
+                "event_type": "announced_action",
+                "announcement_date": "2024-01-02",
+                "source_url": "https://example.test/event",
+                "confidence": "low",
+            }
+        ]
+    )
+
+    assert events[0].announcement_date == date(2024, 1, 2)
+    assert events[0].event_id.startswith("APG:2024-01-02:announced_action")
+
+
 @pytest.mark.parametrize(
     "invalid_row, message",
     [
         ({"symbol": "APG", "event_type": "cash_dividend", "ex_date": "2024-01-02"}, "source_url"),
         ({"event_type": "cash_dividend", "ex_date": "2024-01-02", "source_url": "https://example.test"}, "symbol"),
-        ({"symbol": "APG", "event_type": "cash_dividend", "source_url": "https://example.test"}, "event date"),
+        ({"symbol": "APG", "event_type": "cash_dividend", "source_url": "https://example.test", "confidence": "low"}, "event date"),
     ],
 )
 def test_parse_corporate_actions_rejects_incomplete_rows(invalid_row, message):

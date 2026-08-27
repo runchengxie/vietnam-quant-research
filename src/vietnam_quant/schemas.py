@@ -99,14 +99,14 @@ class PriceDailyRecord(SerializableMixin):
     normalized_low: float | None = None
     normalized_close: float | None = None
     normalized_price_unit: str = "VND"
-    adjusted_close: float | None = None
-    adjusted_price_unit: str | None = None
-    price_semantics: str = "unknown"
     volume_unit: str | None = "unknown"
     quality_flags: list[str] = field(default_factory=list)
     source_observation_id: str = ""
     parser_version: str = "unknown"
     schema_version: str = SCHEMA_VERSION
+    adjusted_close: float | None = None
+    adjusted_price_unit: str | None = None
+    price_semantics: str = "unknown"
 
     @property
     def tradable_quality(self) -> bool:

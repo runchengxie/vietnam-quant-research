@@ -60,9 +60,11 @@ root; complete raw market data is not committed to Git.
 regime changes and to build a future adjustment layer. It keeps
 `announcement_date`, `ex_date`, `record_date`, `payment_date`, and
 `listing_date` as separate nullable fields. The parser requires a symbol, an
-event type, a source URL, and at least one dated event field. It rejects
-duplicate `event_id` values and does not infer missing ratios or dates from
-price series.
+event type, a source URL, an explicit confidence value, and at least one dated
+event field. It rejects duplicate `event_id` values and does not infer missing
+ratios or dates from price series. An announcement date can be the only known
+date, but it does not become an ex-date, record date, payment date, or listing
+date.
 
 `write_corporate_action_events` appends these records idempotently to
 `metadata/corporate_action_events.jsonl` in the external data root. The

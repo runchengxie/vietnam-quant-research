@@ -81,6 +81,40 @@ def test_ssi_parser_does_not_invent_adjusted_close_when_field_is_missing(load_fi
     assert rows[0].price_semantics == "raw_only"
 
 
+def test_ssi_parser_filters_rows_for_other_symbols():
+    rows = parse_ssi_daily(
+        {
+            "data": [
+                {
+                    "TradingDate": "02/01/2024",
+                    "Symbol": "FPT",
+                    "OpenPrice": 100000,
+                    "HighestPrice": 101000,
+                    "LowestPrice": 99000,
+                    "ClosePrice": 100500,
+                    "TotalMatchVol": 1000,
+                },
+                {
+                    "TradingDate": "03/01/2024",
+                    "Symbol": "A32",
+                    "OpenPrice": 25000,
+                    "HighestPrice": 26000,
+                    "LowestPrice": 24000,
+                    "ClosePrice": 25500,
+                    "TotalMatchVol": 10,
+                },
+            ]
+        },
+        symbol="FPT",
+        requested_start=date(2024, 1, 2),
+        requested_end=date(2024, 1, 3),
+    )
+
+    assert len(rows) == 1
+    assert rows[0].symbol == "FPT"
+    assert rows[0].trading_date == date(2024, 1, 2)
+
+
 def test_hnx_upcom_parser_returns_an_exchange_raw_price_anchor():
     html = (Path(__file__).parent / "fixtures" / "hnx_upcom_price.html").read_text(
         encoding="utf-8"
@@ -107,7 +141,16 @@ def test_hnx_upcom_parser_returns_an_exchange_raw_price_anchor():
 def test_hnx_upcom_parser_rejects_a_table_without_close_price():
     with pytest.raises(ValueError, match="close"):
         parse_hnx_upcom_price_anchor(
-            "<table><tr><th>Open</th><th>Close</th></tr><tr><td>25.000</td><td>-</td></tr></table>",
+            "<table><tr><th>Symbol</th><th>Open</th><th>Close</th></tr><tr><td>A32</td><td>25.000</td><td>-</td></tr></table>",
+            symbol="A32",
+            trading_date=date(2024, 8, 16),
+        )
+
+
+def test_hnx_upcom_parser_rejects_a_table_without_symbol_column():
+    with pytest.raises(ValueError, match="symbol"):
+        parse_hnx_upcom_price_anchor(
+            "<table><tr><th>Open</th><th>Close</th></tr><tr><td>25.000</td><td>25.500</td></tr></table>",
             symbol="A32",
             trading_date=date(2024, 8, 16),
         )

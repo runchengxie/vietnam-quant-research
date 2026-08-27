@@ -73,7 +73,11 @@ def parse_ssi_daily(
 
     parsed: list[tuple[date, PriceDailyRecord]] = []
     source_dates: list[date] = []
+    requested_symbol = symbol.upper()
     for row in _rows(payload):
+        row_symbol = _field(row, "Symbol", "Ticker", "Code")
+        if row_symbol and str(row_symbol).strip().upper() != requested_symbol:
+            continue
         trading_date = _as_date(_field(row, "TradingDate", "Trading_Date", "Date"))
         if trading_date is None:
             continue
@@ -93,7 +97,7 @@ def parse_ssi_daily(
             (
                 trading_date,
                 PriceDailyRecord(
-                    symbol=symbol.upper(),
+                    symbol=requested_symbol,
                     trading_date=trading_date,
                     source="ssi",
                     event_time_raw=str(_field(row, "TradingDate", "Trading_Date", "Date")),

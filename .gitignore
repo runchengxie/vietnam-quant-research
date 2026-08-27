@@ -18,5 +18,6 @@ artifacts/
 __pycache__/
 .venv/
 .audit_lib/
+*.egg-info/
 .idea/
 .vscode/

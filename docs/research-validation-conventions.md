@@ -6,8 +6,17 @@
 
 - 形成日只能使用当日收盘时已经可得的数据。
 - 默认从下一交易日开始持有，避免把形成日收盘价同时当作可成交价。
-- 只使用 `research_eligible=true` 的价格记录计算收益率。
+- 只使用 `research_eligible=true` 且 `tradable=true` 的价格记录计算收益率；如果只有质量字段，则同时要求没有结构性失败、正价格和正成交量。
 - `tradable` 需要有效价格和正成交量。停牌、零成交、涨跌停和退市处理必须保留为显式状态，不得静默填充或把资金重新分配给其他股票。
+
+## 信号诊断与执行回测分层
+
+本项目保留两层互补结果，不能把其中一层当成另一层：
+
+- `vietnam_quant.validation` 是市场中性信号诊断层。它按股票分别计算形成日之后第 1/5/20 个交易观测的收盘到收盘收益，再按形成日计算 Rank IC、等权分位数组合、最高分位减最低分位和单调性。该层用于判断信号是否值得继续研究，不模拟成交。
+- `vietnam_quant.backtest` 是执行回测层。它使用形成日之后的下一可用开盘价进场，处理换手率、流动性过滤、不可成交行和 0/50/100 bp 等成本情景，并输出 IS/OOS 结果。
+
+两层都要求排除 `research_eligible=false`、`tradable=false`、结构性质量失败、零成交和非正价格。验证层的 horizon 按每只股票的合资格交易观测计数，不把自然日缺口伪装成可交易日；执行层则必须额外检查形成日、执行日和退出日的可成交约束。
 
 ## 数据可得性
 
@@ -26,5 +35,7 @@
 ## 第一版结果表
 
 每个信号至少记录：样本区间、股票池定义、有效股票数、形成日数量、分组收益、IC 或排序单调性、换手率、成本假设、毛/净收益、最大回撤、样本外区间和已知缺口。
+
+`03_factor_baseline.py` 在保留执行回测 CSV 和成本汇总 JSON 的同时，默认写出 `<output stem>_validation.json`。其中每行对应一个 `factor × horizon × period`，并记录 `valid_date_count`、`rank_ic_valid_date_count`、`mean_rank_ic`、`rank_ic_ir`、`rank_ic_positive_rate`、`mean_high_minus_low`、`mean_monotonicity`、`mean_cross_section`、`period_start`、`period_end` 和 `oos_start`。这里的 `rank_ic_ir` 是按形成日观测计算的均值除以样本标准差，当前不做年化。IS/OOS 按时间顺序切分；该文件是诊断证据，不是经过执行成本后的投资组合收益。
 
 只有当质量门槛通过、价格语义被独立确认且基础信号经过成本和样本外检验后，`factor_ready` 才能进入下一阶段。远端项目的 15 因子体系、A 股行业中性化和具体流动性阈值不属于本项目当前默认配置。

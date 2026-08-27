@@ -1,4 +1,4 @@
-"""Run the provisional daily factor baseline from external bronze JSONL."""
+"""Run the provisional daily factor baseline from an external research-price JSONL."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from vietnam_quant.backtest import BacktestConfig, run_factor_backtest, summarize_backtest
 from vietnam_quant.factors import compute_features
+from vietnam_quant.validation import summarize_factor_validation
 
 DEFAULT_FACTORS = (
     "momentum_1m",
@@ -31,6 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--price-path", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--summary-output", type=Path)
+    parser.add_argument("--validation-output", type=Path)
     parser.add_argument("--oos-fraction", type=float, default=0.3)
     parser.add_argument("--cost-bps", default="0,50,100", help="Comma-separated non-negative basis-point scenarios")
     parser.add_argument("--factor", action="append", dest="factors", help="Factor column; repeat for multiple factors")
@@ -71,12 +73,30 @@ def main(argv: list[str] | None = None) -> int:
         period_frames = [run_factor_backtest(features, factor, config) for factor in factors]
         periods = pd.concat(period_frames, ignore_index=True)
         summary = summarize_backtest(periods, oos_fraction=config.oos_fraction)
+        validation_frames = [
+            summarize_factor_validation(
+                features,
+                factor,
+                horizons=(1, 5, 20),
+                n_quantiles=5,
+                oos_fraction=config.oos_fraction,
+                min_cross_section=10,
+            )
+            for factor in factors
+        ]
+        validation = pd.concat(validation_frames, ignore_index=True)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         periods.to_csv(args.output, index=False)
         summary_path = args.summary_output or args.output.with_name(f"{args.output.stem}_summary.json")
         summary_path.parent.mkdir(parents=True, exist_ok=True)
         summary_path.write_text(
             json.dumps(summary.to_dict(orient="records"), ensure_ascii=False, indent=2, allow_nan=True),
+            encoding="utf-8",
+        )
+        validation_path = args.validation_output or args.output.with_name(f"{args.output.stem}_validation.json")
+        validation_path.parent.mkdir(parents=True, exist_ok=True)
+        validation_path.write_text(
+            json.dumps(validation.to_dict(orient="records"), ensure_ascii=False, indent=2, allow_nan=True),
             encoding="utf-8",
         )
         blocked_size = int((features["market_cap_status"] == "blocked_missing_market_cap").sum())
@@ -89,6 +109,7 @@ def main(argv: list[str] | None = None) -> int:
             "blocked_missing_market_cap_rows": blocked_size,
             "output": str(args.output),
             "summary_output": str(summary_path),
+            "validation_output": str(validation_path),
         }, ensure_ascii=False, indent=2))
         return 0
     except (OSError, ValueError, KeyError) as exc:

@@ -145,3 +145,14 @@ VCI 日线接口的请求体只有 `timeFrame`、`symbols`、`to` 和 `countBack
 2026-08-27 已用实现后的 pipeline 在外部目录 `D:\data\vietnam-quant-research\pilot-v2` 完成 50 只股票试点，覆盖 HOSE 30、HNX 10、UPCoM 10，并分别请求 VCI 和 KBS。完整结果、原始快照和哈希不进入仓库，摘要见[日频数据闭环 v0 验收报告](daily-data-loop-v0.md)。
 
 该批次得到 101 个 observations、171,447 条合并 `price_daily` 记录。质量门槛暂未通过：VCI 有 APG 和 A32 两次读超时，质量摘要包含 492 条 `invalid_ohlc`、10,452 条 `zero_volume`；跨源报告包含 3,095 条只在 primary 缺失的日期、10,882 条另一方向缺失日期和 16,869 条收盘差异记录。下一步是诊断和重跑，不是扩大到 2050 只或购买更高价数据。
+
+## 公司行动与交易所锚点更新
+
+本轮代码已增加 `corporate_action_events` 和 `price_semantic_anchors` 两类证据记录。仓库中的 APG/A32 fixture 只保存公开来源、事件日期、事件类型和置信度，不代表完整历史事件表，也不把缺失比例从价格跳点反推出来。
+
+- APG 已记录两个官方 VSD 样例：2021-06-22 登记日及 2021-09-09 新增股份交易日，另有 2024-08-23 员工股份上市日。事件比例仍待逐公告读取，未写入调整因子。
+- A32 已记录两个公开二手来源的现金分红除权日样例：2019-06-06 和 2020-06-16，每股金额为来源页面明确列出的 700 越南盾。登记日和支付日保持为空，不从价格序列推断。
+- HNX UPCoM 页面解析器把交易所展示的 OHLC 保存为 `exchange_raw` 锚点。它用于核对 A32 的 VCI/KBS 历史价格，不会改写供应商记录，也不声称网页接口提供完整公司行动历史。
+- SSI 解析器支持同时保存 raw OHLC 和明确命名的 `ClosePriceAdjusted`。VCI/KBS 的 adjusted 语义仍为 `unresolved`，因此 `factor_ready` 仍不能开启。
+
+这一步完成的是证据层和解析边界。下一步仍是补齐 APG/A32 的完整逐事件来源、构造可审计的复权价格，并重新跑 50 只股票质量门槛。

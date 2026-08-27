@@ -43,6 +43,28 @@ class InstrumentRecord(SerializableMixin):
 
 
 @dataclass(frozen=True)
+class CorporateActionEvent(SerializableMixin):
+    """One dated corporate-action observation with explicit provenance."""
+
+    event_id: str
+    symbol: str
+    event_type: str
+    source_url: str
+    exchange: str | None = None
+    announcement_date: date | None = None
+    ex_date: date | None = None
+    record_date: date | None = None
+    payment_date: date | None = None
+    listing_date: date | None = None
+    cash_amount_per_share: float | None = None
+    share_ratio: float | None = None
+    rights_ratio: float | None = None
+    source_kind: str = "secondary_discovery"
+    confidence: str = "discovered"
+    notes: str | None = None
+
+
+@dataclass(frozen=True)
 class RawPriceBar(SerializableMixin):
     symbol: str
     trading_date: date
@@ -82,10 +104,35 @@ class PriceDailyRecord(SerializableMixin):
     source_observation_id: str = ""
     parser_version: str = "unknown"
     schema_version: str = SCHEMA_VERSION
+    adjusted_close: float | None = None
+    adjusted_price_unit: str | None = None
+    price_semantics: str = "unknown"
 
     @property
     def tradable_quality(self) -> bool:
         return not bool({"missing_required", "invalid_ohlc", "duplicate_date"} & set(self.quality_flags))
+
+
+@dataclass(frozen=True)
+class PriceSemanticAnchor(SerializableMixin):
+    """An independently sourced price point used to audit provider semantics."""
+
+    anchor_id: str
+    symbol: str
+    exchange: str
+    trading_date: date
+    source: str
+    source_endpoint: str
+    raw_open: float | None = None
+    raw_high: float | None = None
+    raw_low: float | None = None
+    raw_close: float | None = None
+    raw_volume: float | None = None
+    raw_price_unit: str = "VND"
+    semantic_label: str = "exchange_raw"
+    confidence: str = "high"
+    source_observation_id: str = ""
+    notes: str | None = None
 
 
 @dataclass(frozen=True)

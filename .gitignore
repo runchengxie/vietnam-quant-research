@@ -10,6 +10,7 @@ data/
 raw_data/
 outputs/
 artifacts/
+.worktrees/
 *.parquet
 *.csv
 *.jsonl

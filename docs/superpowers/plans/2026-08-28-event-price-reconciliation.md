@@ -126,29 +126,29 @@ git commit -m "feat: add event price reconciliation engine"
   - `write_event_price_reconciliation(store: ExternalDataStore, reports: Iterable[CorporateActionPriceReconciliation], *, relative_jsonl: Path | str = "metadata/corporate_action_price_reconciliation.jsonl", relative_json: Path | str = "metadata/corporate_action_price_reconciliation.json") -> tuple[Path, Path]`;
   - CLI command `python exploration/04_event_price_reconciliation.py --data-root <external-root> --events-file <fixture-or-external-file>` that performs no network call and writes only the two metadata outputs.
 
-- [ ] **Step 1: Write failing tests for idempotent persistence and CLI help**
+- [x] **Step 1: Write failing tests for idempotent persistence and CLI help**
 
 Assert that writing the same reports twice leaves one JSONL record per `event_id` and writes a JSON summary with `entries`. Add a CLI contract test that `--help` exits zero and exposes `--data-root`, `--events-file`, `--price-path`, `--before-bars`, and `--after-bars`.
 
-- [ ] **Step 2: Run the focused persistence/CLI tests and confirm the expected failure**
+- [x] **Step 2: Run the focused persistence/CLI tests and confirm the expected failure**
 
 Run: `python -m pytest tests/test_event_price_cli.py -q`  
 Expected: FAIL because the writer and CLI do not yet exist.
 
-- [ ] **Step 3: Implement persistence and the offline CLI**
+- [x] **Step 3: Implement persistence and the offline CLI**
 
 Use `ExternalDataStore.append_jsonl_many(..., key="event_id")` for JSONL and `write_json(..., {"entries": [...]})` for the summary. The CLI must parse event JSON arrays or JSONL, convert JSON price rows to `PriceDailyRecord` with `trading_date=date.fromisoformat(...)`, call the pure engine, and exit zero after writing reports. It must not instantiate an HTTP adapter or enable network access.
 
-- [ ] **Step 4: Document the new evidence output and non-goals**
+- [x] **Step 4: Document the new evidence output and non-goals**
 
 Add the two metadata paths, CLI usage, status definitions, and explicit “no adjusted price / no factor readiness” boundary to `docs/data-contracts.md` and the relevant README usage section.
 
-- [ ] **Step 5: Run focused tests and confirm they pass**
+- [x] **Step 5: Run focused tests and confirm they pass**
 
 Run: `python -m pytest tests/test_event_price.py tests/test_event_price_cli.py tests/test_cli_contracts.py -q`  
 Expected: PASS.
 
-- [ ] **Step 6: Commit persistence, CLI, tests, and documentation**
+- [x] **Step 6: Commit persistence, CLI, tests, and documentation**
 
 ```text
 git add src/vietnam_quant/event_price.py exploration/04_event_price_reconciliation.py tests/test_event_price_cli.py tests/test_cli_contracts.py docs/data-contracts.md README.md

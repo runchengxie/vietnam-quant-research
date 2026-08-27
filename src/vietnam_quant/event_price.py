@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Iterable
 from datetime import date
+from pathlib import Path
 from statistics import median
 from typing import Any
 
@@ -13,6 +14,7 @@ from .schemas import (
     CorporateActionPriceReconciliation,
     PriceDailyRecord,
 )
+from .storage import ExternalDataStore
 
 
 def select_event_reference_date(event: CorporateActionEvent) -> tuple[date | None, str]:
@@ -256,7 +258,27 @@ def reconcile_corporate_action_prices(
     return reports
 
 
+def write_event_price_reconciliation(
+    store: ExternalDataStore,
+    reports: Iterable[CorporateActionPriceReconciliation],
+    *,
+    relative_jsonl: Path | str = "metadata/corporate_action_price_reconciliation.jsonl",
+    relative_json: Path | str = "metadata/corporate_action_price_reconciliation.json",
+) -> tuple[Path, Path]:
+    """Persist event evidence without duplicating stable event IDs."""
+
+    serialized = [report.to_dict() for report in reports]
+    jsonl_path = store.append_jsonl_many(
+        relative_jsonl,
+        serialized,
+        key="event_id",
+    )
+    json_path = store.write_json(relative_json, {"entries": serialized})
+    return jsonl_path, json_path
+
+
 __all__ = [
     "reconcile_corporate_action_prices",
     "select_event_reference_date",
+    "write_event_price_reconciliation",
 ]

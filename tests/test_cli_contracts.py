@@ -30,6 +30,18 @@ def test_factor_baseline_help_is_offline():
     assert "--validation-output" in result.stdout
 
 
+def test_event_price_reconciliation_help_is_offline():
+    result = subprocess.run(
+        [sys.executable, "exploration/04_event_price_reconciliation.py", "--help"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    for option in ("--data-root", "--events-file", "--price-path", "--before-bars", "--after-bars"):
+        assert option in result.stdout
+
+
 def test_factor_baseline_writes_validation_json(tmp_path):
     rows = []
     dates = pd.date_range("2024-01-02", periods=80, freq="B")

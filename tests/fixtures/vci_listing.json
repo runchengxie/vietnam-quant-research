@@ -1,0 +1,7 @@
+{
+  "data": [
+    {"symbol": "FPT", "board": "HSX", "companyName": "FPT Corp", "type": "STOCK"},
+    {"symbol": "PVS", "board": "HNX", "companyName": "PVS Corp", "type": "STOCK"},
+    {"symbol": "AGE", "group": "DELISTED", "companyName": "AGE Corp", "type": "STOCK"}
+  ]
+}

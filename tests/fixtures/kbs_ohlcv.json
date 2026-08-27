@@ -1,0 +1,8 @@
+{
+  "data_day": [
+    {"date": "01/02/2024", "open": 111, "high": 112, "low": 110, "close": 111.5, "volume": 1300},
+    {"date": "31/01/2024", "open": 110, "high": 111, "low": 109, "close": 110.5, "volume": 1200},
+    {"date": "02/01/2024", "open": 101, "high": 102, "low": 100, "close": 101.5, "volume": 1100},
+    {"date": "01/01/2024", "open": 100, "high": 101, "low": 99, "close": 100.5, "volume": 1000}
+  ]
+}

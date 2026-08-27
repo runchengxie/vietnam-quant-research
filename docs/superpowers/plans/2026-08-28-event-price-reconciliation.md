@@ -71,40 +71,40 @@ git commit -m "fix: correct A32 corporate action date semantics"
   - `select_event_reference_date(event: CorporateActionEvent) -> tuple[date | None, str]`;
   - `reconcile_corporate_action_prices(events: Iterable[CorporateActionEvent], price_rows: Iterable[PriceDailyRecord], *, before_bars: int = 5, after_bars: int = 5, relative_tolerance: float = 0.001) -> list[CorporateActionPriceReconciliation]`.
 
-- [ ] **Step 1: Write failing tests for reference-date selection**
+- [x] **Step 1: Write failing tests for reference-date selection**
 
 Cover these exact cases: cash dividend with `ex_date` returns `(ex_date, "ex_date")`; employee-share listing with no `ex_date` returns `(listing_date, "listing_date")`; announcement-only event returns `(announcement_date, "announcement_date_reference_only")`; event with no announcement/ex/listing date returns `(None, "none")`. Assert that a payment date is never selected.
 
-- [ ] **Step 2: Run the reference-date tests and confirm the expected failure**
+- [x] **Step 2: Run the reference-date tests and confirm the expected failure**
 
 Run: `python -m pytest tests/test_event_price.py -q`  
 Expected: FAIL because `src/vietnam_quant/event_price.py` and `select_event_reference_date` do not exist.
 
-- [ ] **Step 3: Implement explicit reference-date selection**
+- [x] **Step 3: Implement explicit reference-date selection**
 
 Implement `select_event_reference_date` with the four rules above. Return `announcement_date_reference_only` for an announcement-only anchor and never fall back to `record_date` or `payment_date`.
 
-- [ ] **Step 4: Write failing tests for source windows, quality evidence, and statuses**
+- [x] **Step 4: Write failing tests for source windows, quality evidence, and statuses**
 
 Use small in-memory `PriceDailyRecord` rows to assert: five bars before and after are selected by source trading-date order; a non-trading reference date yields `nearby` without a fabricated bar; raw/normalized close, volume, quality flags, and `source_observation_id` are present in the window; invalid OHLC and zero volume remain visible; no source context yields `no_evidence`; and source close differences or invalid context yield `unresolved` rather than an inferred ratio.
 
-- [ ] **Step 5: Run the new engine tests and confirm the expected failure**
+- [x] **Step 5: Run the new engine tests and confirm the expected failure**
 
 Run: `python -m pytest tests/test_event_price.py -q`  
 Expected: FAIL on the missing reconciliation function and report fields.
 
-- [ ] **Step 6: Implement the minimal pure reconciliation engine**
+- [x] **Step 6: Implement the minimal pure reconciliation engine**
 
 Group rows by `(symbol, source)` and sort only the in-memory view by `trading_date`. For each event, use the selected reference date, collect at most `before_bars` strictly earlier and `after_bars` strictly later bars plus an exact reference-day bar when present, and compute per-source `pre_close`, `reference_close`, `post_close`, `pre_to_post_return`, `available_bar_count`, `zero_volume_count`, and `invalid_ohlc_count`. Preserve each selected row as a serializable evidence dictionary.
 
 Compute cross-source common-date count, close-difference count, relative-difference median/max, and missing/invalid context counts using valid closes only. Set `assessment` to `no_evidence` when no source has context, `nearby` when context exists but no source has the exact reference date and no conflict is observed, `matched` when at least one source has exact-date plus before/after context and no conflict is observed, and `unresolved` for structural invalidity, insufficient context, or cross-source differences above tolerance. Descriptive ratios may be reported, but no adjustment factor may be emitted.
 
-- [ ] **Step 7: Run the engine tests and confirm they pass**
+- [x] **Step 7: Run the engine tests and confirm they pass**
 
 Run: `python -m pytest tests/test_event_price.py -q`  
 Expected: PASS, including assertions that input row objects are unchanged.
 
-- [ ] **Step 8: Commit the pure engine**
+- [x] **Step 8: Commit the pure engine**
 
 ```text
 git add src/vietnam_quant/event_price.py tests/test_event_price.py

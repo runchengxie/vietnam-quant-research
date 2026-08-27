@@ -26,6 +26,12 @@ adjusted, or otherwise revised. That price-semantics question remains an
 explicit unresolved quality dimension and must be confirmed before factor
 research uses long-horizon returns.
 
+`PriceDailyRecord.adjusted_close` is an optional separate field for a source
+that explicitly supplies an adjusted close, such as SSI's
+`ClosePriceAdjusted`. It never overwrites `raw_close` or
+`normalized_close`. `price_semantics` records the field boundary, not a claim
+that the provider's adjustment methodology has been independently confirmed.
+
 The parser performs inclusive date cropping after timestamp normalization. KBS
 responses are sorted ascending before output. No row is silently deleted: missing
 fields, duplicate dates, invalid OHLC relations, negative values, zero volume,
@@ -47,3 +53,26 @@ root; complete raw market data is not committed to Git.
 - `boundary_price_proxy` is only a proxy when formal price limits are absent; it
   is not a claim that a confirmed limit event occurred.
 - Reconciliation reports missing dates and close differences by source/date.
+
+## `corporate_action_events`
+
+`CorporateActionEvent` is the event evidence table used to explain price
+regime changes and to build a future adjustment layer. It keeps
+`announcement_date`, `ex_date`, `record_date`, `payment_date`, and
+`listing_date` as separate nullable fields. The parser requires a symbol, an
+event type, a source URL, and at least one dated event field. It rejects
+duplicate `event_id` values and does not infer missing ratios or dates from
+price series.
+
+`write_corporate_action_events` appends these records idempotently to
+`metadata/corporate_action_events.jsonl` in the external data root. The
+repository fixture contains only small APG/A32 metadata examples and public
+source links. It is not a replacement for a complete event history.
+
+## `price_semantic_anchors`
+
+`PriceSemanticAnchor` stores an independently sourced price point. The HNX
+UPCoM parser currently emits exchange-displayed VND OHLC as
+`semantic_label=exchange_raw`, with the source endpoint and observation ID
+retained. An anchor is evidence for later reconciliation; it does not rewrite
+VCI/KBS rows or decide which vendor series should be used for returns.

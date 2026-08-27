@@ -1,0 +1,49 @@
+[
+  {
+    "event_id": "APG:2021-06-22:stock_dividend_rights",
+    "symbol": "APG",
+    "exchange": "HOSE",
+    "event_type": "stock_dividend_and_rights_issue",
+    "record_date": "2021-06-22",
+    "listing_date": "2021-09-09",
+    "source_url": "https://www.vsd.vn/vi/ad/144285",
+    "source_kind": "official",
+    "confidence": "high",
+    "notes": "Official VSD notice records additional shares and the official trading date."
+  },
+  {
+    "event_id": "A32:2019-06-06:cash_dividend",
+    "symbol": "A32",
+    "exchange": "UPCoM",
+    "event_type": "cash_dividend",
+    "ex_date": "2019-06-06",
+    "cash_amount_per_share": 700,
+    "source_url": "https://cafef.vn/du-lieu/a32-1565341/a32-662019-ngay-gdkhq-tra-co-tuc-bang-tien-mat-700dcp.chn",
+    "source_kind": "secondary_discovery",
+    "confidence": "medium",
+    "notes": "Secondary discovery record; record and payment dates are not inferred."
+  },
+  {
+    "event_id": "A32:2020-06-16:cash_dividend",
+    "symbol": "A32",
+    "exchange": "UPCoM",
+    "event_type": "cash_dividend",
+    "ex_date": "2020-06-16",
+    "cash_amount_per_share": 700,
+    "source_url": "https://cafef.vn/du-lieu/a32-1724014/a32-162020-ngay-gdkhq-tra-co-tuc-bang-tien-mat-700dcp.chn",
+    "source_kind": "secondary_discovery",
+    "confidence": "medium",
+    "notes": "Secondary discovery record; record and payment dates are not inferred."
+  },
+  {
+    "event_id": "APG:2024-08-23:employee_shares",
+    "symbol": "APG",
+    "exchange": "HOSE",
+    "event_type": "employee_share_listing",
+    "listing_date": "2024-08-23",
+    "source_url": "https://www.vsd.vn/vi/ad/161897",
+    "source_kind": "official",
+    "confidence": "high",
+    "notes": "Official VSD notice records employee shares and the official trading date."
+  }
+]

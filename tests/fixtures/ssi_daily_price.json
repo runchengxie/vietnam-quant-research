@@ -1,0 +1,36 @@
+{
+  "data": [
+    {
+      "TradingDate": "02/01/2024",
+      "Symbol": "FPT",
+      "Market": "HOSE",
+      "OpenPrice": 100000,
+      "HighestPrice": 102000,
+      "LowestPrice": 99000,
+      "ClosePrice": 101000,
+      "ClosePriceAdjusted": 98000,
+      "TotalMatchVol": 12345
+    },
+    {
+      "TradingDate": "03/01/2024",
+      "Symbol": "FPT",
+      "Market": "HOSE",
+      "OpenPrice": 101000,
+      "HighestPrice": 103000,
+      "LowestPrice": 100000,
+      "ClosePrice": 102000,
+      "TotalMatchVol": 23456
+    },
+    {
+      "TradingDate": "04/01/2024",
+      "Symbol": "FPT",
+      "Market": "HOSE",
+      "OpenPrice": 102000,
+      "HighestPrice": 104000,
+      "LowestPrice": 101000,
+      "ClosePrice": 103000,
+      "ClosePriceAdjusted": 100000,
+      "TotalMatchVol": 34567
+    }
+  ]
+}

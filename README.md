@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-当前已从 docs-first smoke test 升级为可离线测试、可显式联网运行的日频数据闭环：保存 raw snapshot、instrument master、price daily、source observation、质量摘要、VCI/KBS reconciliation，以及不改写 bronze 的研究派生视图。研究视图会隔离 invalid OHLC、标记零成交不可交易、记录来源仲裁和未确认的价格语义。2026-08-27 的 50 只股票试点原始质量门槛未通过，因此尚未生成可用于研究结论的基础因子结果，也未批准扩展到 2050 只。
+当前已从 docs-first smoke test 升级为可离线测试、可显式联网运行的日频数据闭环：保存 raw snapshot、instrument master、price daily、source observation、质量摘要、VCI/KBS reconciliation，以及不改写 bronze 的研究派生视图。研究视图会隔离 invalid OHLC、标记零成交不可交易、记录来源仲裁和未确认的价格语义；事件—价格核对 CLI 可在外部 data root 生成只读公司行动证据。2026-08-27 的 50 只股票试点原始质量门槛未通过，因此尚未生成可用于研究结论的基础因子结果，也未批准扩展到 2050 只。
 
 ## 文档
 
@@ -17,6 +17,7 @@
 - [公开日线数据可得性审计](docs/exploration-data-audit.md)
 - [日频数据闭环 v0 验收报告](docs/daily-data-loop-v0.md)
 - [数据契约](docs/data-contracts.md)
+- [事件—价格核对设计](docs/superpowers/specs/2026-08-28-event-price-reconciliation-design.md)
 
 ## 研究边界
 
@@ -24,7 +25,7 @@
 
 ## 下一步
 
-旧的可得性探针见 [`exploration/01_public_ohlcv_probe.py`](exploration/01_public_ohlcv_probe.py)，当前闭环入口是 [`exploration/02_daily_data_pipeline.py`](exploration/02_daily_data_pipeline.py)，因子入口是 [`exploration/03_factor_baseline.py`](exploration/03_factor_baseline.py)。运行后先读取 raw gate、research gate 和 `factor_ready`；在价格语义确认且 `factor_ready=true` 前不运行因子基线，不购买 FiinPro、Tick/Level 2，也不把试点结果作为 alpha 结论。运行数据应保存在仓库之外。
+旧的可得性探针见 [`exploration/01_public_ohlcv_probe.py`](exploration/01_public_ohlcv_probe.py)，当前闭环入口是 [`exploration/02_daily_data_pipeline.py`](exploration/02_daily_data_pipeline.py)，事件核对入口是 [`exploration/04_event_price_reconciliation.py`](exploration/04_event_price_reconciliation.py)，因子入口是 [`exploration/03_factor_baseline.py`](exploration/03_factor_baseline.py)。运行后先读取 raw gate、research gate 和 `factor_ready`；在价格语义确认且 `factor_ready=true` 前不运行因子基线，不购买 FiinPro、Tick/Level 2，也不把试点结果作为 alpha 结论。运行数据应保存在仓库之外。
 
 ## 本地数据目录
 

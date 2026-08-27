@@ -78,3 +78,32 @@ UPCoM parser currently emits exchange-displayed VND OHLC as
 `semantic_label=exchange_raw`, with the source endpoint and observation ID
 retained. An anchor is evidence for later reconciliation; it does not rewrite
 VCI/KBS rows or decide which vendor series should be used for returns.
+
+## `corporate_action_price_reconciliation`
+
+`CorporateActionPriceReconciliation` is a read-only evidence record linking one
+explicit company-action date to nearby source price bars. The report keeps all
+event dates and labels the selected `reference_date_kind`: `ex_date` is used
+when present, listing events may use `listing_date`, and an announcement-only
+date is marked `announcement_date_reference_only`. `record_date` and
+`payment_date` are never silently treated as an ex-date.
+
+The offline command below reads bronze JSONL and a JSON/JSONL event file, then
+writes these external-root metadata files:
+
+```text
+python exploration/04_event_price_reconciliation.py \
+  --data-root D:\\data\\vietnam-quant-research\\pilot-v6 \
+  --events-file tests\\fixtures\\corporate_actions_apg_a32.json
+```
+
+```text
+metadata/corporate_action_price_reconciliation.jsonl
+metadata/corporate_action_price_reconciliation.json
+```
+
+Each event report includes per-source bars, raw/normalized prices, volume,
+quality flags, source observation IDs, pre/post descriptive returns, and a
+cross-source difference summary. `matched`, `nearby`, `no_evidence`, and
+`unresolved` describe evidence alignment only; they do not establish causality,
+construct an adjustment factor, or change `price_semantics`/`factor_ready`.

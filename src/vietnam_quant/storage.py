@@ -60,6 +60,13 @@ class ExternalDataStore:
     def write_json(self, relative_path: Path | str, payload: Any) -> Path:
         return self._write_atomic(relative_path, self._json_bytes(payload))
 
+    def write_jsonl(self, relative_path: Path | str, records: Iterable[dict[str, Any]]) -> Path:
+        payload = "".join(
+            json.dumps(record, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+            for record in records
+        ).encode("utf-8")
+        return self._write_atomic(relative_path, payload)
+
     def read_jsonl(self, relative_path: Path | str) -> list[dict[str, Any]]:
         _, path = self._resolve(relative_path)
         if not path.exists():

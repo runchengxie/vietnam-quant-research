@@ -25,6 +25,15 @@ def test_store_jsonl_round_trips_records(tmp_path):
     assert store.read_jsonl("bronze/price_daily.jsonl") == [{"symbol": "FPT"}]
 
 
+def test_store_write_jsonl_replaces_records_atomically(tmp_path):
+    store = ExternalDataStore(tmp_path)
+
+    path = store.write_jsonl("metadata/report.jsonl", [{"event_id": "one"}])
+
+    assert path.as_posix() == "metadata/report.jsonl"
+    assert store.read_jsonl(path) == [{"event_id": "one"}]
+
+
 def test_append_jsonl_supports_composite_identity_fields(tmp_path):
     store = ExternalDataStore(tmp_path)
     first = {"source": "vci", "symbol": "FPT", "trading_date": "2024-01-02", "close": 1}

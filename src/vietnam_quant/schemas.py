@@ -65,6 +65,22 @@ class CorporateActionEvent(SerializableMixin):
 
 
 @dataclass(frozen=True)
+class CorporateActionPriceReconciliation(SerializableMixin):
+    """Evidence linking one corporate-action event to nearby price bars."""
+
+    event_id: str
+    symbol: str
+    event_type: str
+    reference_date: date | None
+    reference_date_kind: str
+    event_dates: dict[str, date | None] = field(default_factory=dict)
+    source_evidence: dict[str, dict[str, Any]] = field(default_factory=dict)
+    cross_source: dict[str, Any] = field(default_factory=dict)
+    assessment: str = "unresolved"
+    notes: str = ""
+
+
+@dataclass(frozen=True)
 class RawPriceBar(SerializableMixin):
     symbol: str
     trading_date: date

@@ -15,8 +15,13 @@ def test_parse_corporate_actions_keeps_apg_and_a32_dates_and_source_kinds(load_f
     assert events[0].listing_date == date(2021, 9, 9)
     assert events[0].source_kind == "official"
     assert events[1].ex_date == date(2019, 6, 6)
+    assert events[1].record_date == date(2019, 6, 7)
+    assert events[1].payment_date == date(2019, 6, 20)
     assert events[1].cash_amount_per_share == 700.0
     assert events[1].source_kind == "secondary_discovery"
+    assert events[2].ex_date == date(2020, 6, 1)
+    assert events[2].record_date == date(2020, 6, 2)
+    assert events[2].payment_date == date(2020, 6, 16)
     assert events[3].listing_date == date(2024, 8, 23)
     assert events[3].source_kind == "official"
 

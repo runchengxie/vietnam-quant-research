@@ -183,7 +183,7 @@ Record event reference-date kinds, per-source context counts, zero-volume/invali
 
 Include the corrected A32 dates, APG/A32 event statuses, pilot-v6 input/output paths, and the remaining `factor_ready=false` decision. Do not copy raw price rows or runtime JSON into the repository.
 
-- [ ] **Step 4: Run final verification**
+- [x] **Step 4: Run final verification**
 
 ```text
 python -m pytest
@@ -194,7 +194,7 @@ git status --short --branch
 
 Expected: all tests pass, compileall and diff-check exit zero, and only intended source/test/docs files are tracked.
 
-- [ ] **Step 5: Commit the evidence note and final plan state**
+- [x] **Step 5: Commit the evidence note and final plan state**
 
 ```text
 git add docs/event-price-reconciliation-2026-08-28.md docs/superpowers/plans/2026-08-28-event-price-reconciliation.md

@@ -115,8 +115,10 @@ git commit -m "feat: add event price reconciliation engine"
 
 **Files:**
 - Modify: `src/vietnam_quant/event_price.py`
+- Modify: `src/vietnam_quant/storage.py`
 - Create: `exploration/04_event_price_reconciliation.py`
 - Create: `tests/test_event_price_cli.py`
+- Modify: `tests/test_storage.py`
 - Modify: `docs/data-contracts.md`
 - Modify: `README.md`
 
@@ -137,7 +139,7 @@ Expected: FAIL because the writer and CLI do not yet exist.
 
 - [x] **Step 3: Implement persistence and the offline CLI**
 
-Use `ExternalDataStore.append_jsonl_many(..., key="event_id")` for JSONL and `write_json(..., {"entries": [...]})` for the summary. The CLI must parse event JSON arrays or JSONL, convert JSON price rows to `PriceDailyRecord` with `trading_date=date.fromisoformat(...)`, call the pure engine, and exit zero after writing reports. It must not instantiate an HTTP adapter or enable network access.
+Use `ExternalDataStore.read_jsonl(...)` plus its atomic `write_jsonl(...)` method to upsert by `event_id` without leaving stale records, and `write_json(..., {"entries": [...]})` for the summary. The CLI must parse event JSON arrays or JSONL, convert JSON price rows to `PriceDailyRecord` with `trading_date=date.fromisoformat(...)`, call the pure engine, and exit zero after writing reports. It must not instantiate an HTTP adapter or enable network access.
 
 - [x] **Step 4: Document the new evidence output and non-goals**
 
@@ -151,7 +153,7 @@ Expected: PASS.
 - [x] **Step 6: Commit persistence, CLI, tests, and documentation**
 
 ```text
-git add src/vietnam_quant/event_price.py exploration/04_event_price_reconciliation.py tests/test_event_price_cli.py tests/test_cli_contracts.py docs/data-contracts.md README.md
+git add src/vietnam_quant/event_price.py src/vietnam_quant/storage.py exploration/04_event_price_reconciliation.py tests/test_event_price_cli.py tests/test_storage.py tests/test_cli_contracts.py docs/data-contracts.md README.md
 git commit -m "feat: expose offline event price reconciliation report"
 ```
 
@@ -165,7 +167,7 @@ git commit -m "feat: expose offline event price reconciliation report"
 - Consumes: `D:\data\vietnam-quant-research\pilot-v6\bronze\price_daily.jsonl` and the corrected repository fixture.
 - Produces: external `D:\data\vietnam-quant-research\pilot-v6\metadata\corporate_action_price_reconciliation.jsonl` and `.json`, plus a concise repository evidence note.
 
-- [ ] **Step 1: Run the offline CLI against pilot-v6**
+- [x] **Step 1: Run the offline CLI against pilot-v6**
 
 ```text
 python exploration/04_event_price_reconciliation.py --data-root D:\data\vietnam-quant-research\pilot-v6 --events-file tests\fixtures\corporate_actions_apg_a32.json --price-path bronze\price_daily.jsonl --before-bars 5 --after-bars 5
@@ -173,11 +175,11 @@ python exploration/04_event_price_reconciliation.py --data-root D:\data\vietnam-
 
 Expected: exit zero, create only metadata outputs under pilot-v6, and leave bronze row count unchanged.
 
-- [ ] **Step 2: Inspect the generated APG/A32 evidence without changing it**
+- [x] **Step 2: Inspect the generated APG/A32 evidence without changing it**
 
 Record event reference-date kinds, per-source context counts, zero-volume/invalid flags, cross-source differences, and assessment statuses. Explicitly report that the evidence does not prove causality or adjusted-price semantics.
 
-- [ ] **Step 3: Write the concise evidence note and mark the plan steps complete**
+- [x] **Step 3: Write the concise evidence note and mark the plan steps complete**
 
 Include the corrected A32 dates, APG/A32 event statuses, pilot-v6 input/output paths, and the remaining `factor_ready=false` decision. Do not copy raw price rows or runtime JSON into the repository.
 

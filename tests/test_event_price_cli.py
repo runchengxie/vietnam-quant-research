@@ -53,6 +53,29 @@ def test_write_event_price_reconciliation_updates_existing_event_without_duplica
     assert records[0]["notes"] == "Updated evidence."
 
 
+def test_write_event_price_reconciliation_keeps_json_summary_aligned_with_jsonl(tmp_path):
+    store = ExternalDataStore(tmp_path)
+    first = make_report("event-1")
+    second = make_report("event-2")
+    updated_first = replace(first, notes="Updated evidence.")
+
+    write_event_price_reconciliation(store, [first, second])
+    write_event_price_reconciliation(store, [updated_first])
+
+    jsonl_records = store.read_jsonl(
+        "metadata/corporate_action_price_reconciliation.jsonl"
+    )
+    summary = json.loads(
+        (tmp_path / "metadata/corporate_action_price_reconciliation.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert [record["event_id"] for record in summary["entries"]] == [
+        record["event_id"] for record in jsonl_records
+    ]
+    assert summary["entries"][0]["notes"] == "Updated evidence."
+
+
 def test_event_price_cli_reads_bronze_and_writes_metadata_without_network(tmp_path):
     data_root = tmp_path / "data"
     bronze_path = data_root / "bronze" / "price_daily.jsonl"

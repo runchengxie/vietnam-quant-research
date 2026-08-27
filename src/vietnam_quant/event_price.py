@@ -282,7 +282,7 @@ def write_event_price_reconciliation(
             positions[event_id] = len(merged)
             merged.append(record)
     jsonl_path = store.write_jsonl(relative_jsonl, merged)
-    json_path = store.write_json(relative_json, {"entries": serialized})
+    json_path = store.write_json(relative_json, {"entries": merged})
     return jsonl_path, json_path
 
 

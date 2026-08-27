@@ -20,8 +20,10 @@ def test_vci_parser_strictly_crops_count_back_response(load_fixture):
     )
     assert [row.trading_date for row in rows] == [date(2024, 1, 2), date(2024, 1, 31)]
     assert rows[0].raw_close == 101.5
-    assert rows[0].normalized_close == 101500.0
-    assert "unit_converted_thousand_vnd" in rows[0].quality_flags
+    assert rows[0].normalized_close == 101.5
+    assert rows[0].raw_price_unit == "VND"
+    assert rows[0].normalized_price_unit == "VND"
+    assert "unit_converted_thousand_vnd" not in rows[0].quality_flags
 
 
 def test_kbs_parser_sorts_and_strictly_crops_dates(load_fixture):
@@ -35,5 +37,6 @@ def test_kbs_parser_sorts_and_strictly_crops_dates(load_fixture):
     assert [row.trading_date for row in rows] == sorted(row.trading_date for row in rows)
     assert rows[0].trading_date == date(2024, 1, 2)
     assert rows[-1].trading_date == date(2024, 1, 31)
-    assert rows[0].normalized_close == rows[0].raw_close * 1000
+    assert rows[0].normalized_close == rows[0].raw_close
+    assert rows[0].raw_price_unit == "VND"
     assert "reordered_source_rows" in rows[0].quality_flags

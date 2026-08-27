@@ -15,7 +15,7 @@
 - 第一轮默认运行 50 只股票，最低覆盖 HOSE 30、HNX 10、UPCoM 10；2050 只作为通过试点后的可配置扩展。
 - VCI 是主来源，KBS 是第二来源；SSI 只实现可插拔接口和无凭证跳过状态。
 - 不提交 API key、secret、token、账号信息、完整行情、商业数据文件或外部运行产物。
-- 原始价格和标准化价格必须并列保存；千 VND 转 VND 时保留原始值和原始单位。
+- 原始价格和标准化价格必须并列保存；VCI/KBS 端点价格按 VND 保存，复权状态与单位字段分离。
 - VCI 的 to + countBack 响应必须在客户端做严格日期裁剪；KBS 响应必须先升序排序。
 - 缺失、重复、OHLC 异常、零成交和边界价格只能被标记，不能静默删除、填充或覆盖。
 - 因子信号只能使用形成日前可用数据；回测必须包含流动性过滤、不可交易约束、交易成本和时间切分 OOS。
@@ -178,7 +178,7 @@ def parse_kbs_ohlcv(
 ) -> list[PriceDailyRecord]: ...
 ```
 
-VCI must support array-shaped t/o/h/l/c/v payloads and row-shaped payloads. Convert epoch timestamps through Asia/Ho_Chi_Minh to trading_date; parse KBS timestamps as local Vietnam time. Sort normalized rows and filter inclusively to the requested dates. Use raw_price_unit thousand_vnd and normalized VND values without overwriting raw fields.
+VCI must support array-shaped t/o/h/l/c/v payloads and row-shaped payloads. Convert epoch timestamps through Asia/Ho_Chi_Minh to trading_date; parse KBS timestamps as local Vietnam time. Sort normalized rows and filter inclusively to the requested dates. Use raw and normalized VND values without overwriting raw fields; keep historical price-adjustment semantics as a separate unresolved field.
 
 - [ ] Step 5: Add failing quality and reconciliation tests
 

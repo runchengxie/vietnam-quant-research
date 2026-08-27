@@ -172,7 +172,7 @@ def _record_from_values(
     raw_low = _as_float(row.get("low"))
     raw_close = _as_float(row.get("close"))
     raw_volume = _as_float(row.get("volume"))
-    flags = ["unit_converted_thousand_vnd"]
+    flags: list[str] = []
     if reordered:
         flags.append("reordered_source_rows")
     return PriceDailyRecord(
@@ -187,11 +187,11 @@ def _record_from_values(
         raw_low=raw_low,
         raw_close=raw_close,
         raw_volume=raw_volume,
-        raw_price_unit="thousand_vnd",
-        normalized_open=raw_open * 1000 if raw_open is not None else None,
-        normalized_high=raw_high * 1000 if raw_high is not None else None,
-        normalized_low=raw_low * 1000 if raw_low is not None else None,
-        normalized_close=raw_close * 1000 if raw_close is not None else None,
+        raw_price_unit="VND",
+        normalized_open=raw_open,
+        normalized_high=raw_high,
+        normalized_low=raw_low,
+        normalized_close=raw_close,
         normalized_price_unit="VND",
         volume_unit="shares_or_source_units",
         quality_flags=flags,
@@ -232,17 +232,18 @@ def normalize_price_bars(rows: Iterable[RawPriceBar | PriceDailyRecord]) -> list
     normalized: list[PriceDailyRecord] = []
     for row in rows:
         if isinstance(row, PriceDailyRecord):
-            if row.normalized_close is not None or row.raw_price_unit != "thousand_vnd":
+            if row.normalized_close is not None:
                 normalized.append(row)
                 continue
             normalized.append(PriceDailyRecord(
                 **{**row.to_dict(),
                    "trading_date": row.trading_date, "event_time_utc": row.event_time_utc,
                    "quality_flags": list(row.quality_flags),
-                   "normalized_open": row.raw_open * 1000 if row.raw_open is not None else None,
-                   "normalized_high": row.raw_high * 1000 if row.raw_high is not None else None,
-                   "normalized_low": row.raw_low * 1000 if row.raw_low is not None else None,
-                   "normalized_close": row.raw_close * 1000 if row.raw_close is not None else None}))
+                   "raw_price_unit": "VND",
+                   "normalized_open": row.raw_open,
+                   "normalized_high": row.raw_high,
+                   "normalized_low": row.raw_low,
+                   "normalized_close": row.raw_close}))
             continue
         normalized.append(_record_from_values(
             {"open": row.raw_open, "high": row.raw_high, "low": row.raw_low, "close": row.raw_close, "volume": row.raw_volume},
@@ -270,7 +271,7 @@ def parse_vci_ohlcv(
         dates.append(event_date)
         parsed.append((event_date, _record_from_values(
             row, symbol=symbol.upper(), source="vci", exchange=exchange,
-            parser_version="vci-ohlcv-v1", source_observation_id=source_observation_id,
+            parser_version="vci-ohlcv-v2", source_observation_id=source_observation_id,
             event_date=event_date, event_time_utc=event_time_utc, event_time_raw=str(row.get("time")),
         )))
     reordered = dates != sorted(dates)

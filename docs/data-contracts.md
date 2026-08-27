@@ -14,12 +14,17 @@ nullable because a current listing response cannot prove historical validity.
 
 ## `price_daily`
 
-`PriceDailyRecord` stores raw and normalized price fields together. VCI and KBS
-observations are currently treated as `thousand_vnd`; normalized prices are
-stored as VND by multiplying by 1,000. The conversion is recorded with the
-`unit_converted_thousand_vnd` quality flag. Volume is preserved in source units
+`PriceDailyRecord` stores raw and normalized price fields together. The VCI and
+KBS historical OHLC endpoints expose price values in VND; the adapter preserves
+those values in both raw and normalized fields and sets both units to `VND`.
+There is no unit-conversion quality flag. Volume is preserved in source units
 and labeled `shares_or_source_units` until a source-specific volume contract is
 verified.
+
+The VND unit does not establish whether a provider's historical series is raw,
+adjusted, or otherwise revised. That price-semantics question remains an
+explicit unresolved quality dimension and must be confirmed before factor
+research uses long-horizon returns.
 
 The parser performs inclusive date cropping after timestamp normalization. KBS
 responses are sorted ascending before output. No row is silently deleted: missing

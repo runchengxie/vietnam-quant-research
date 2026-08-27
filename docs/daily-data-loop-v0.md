@@ -36,13 +36,14 @@ python exploration/02_daily_data_pipeline.py \
 
 ```text
 python exploration/03_factor_baseline.py \
-  --price-path D:\data\vietnam-quant-research\pilot-v2\bronze\price_daily.jsonl \
+  --price-path D:\data\vietnam-quant-research\pilot-v2\derived\research_price_daily.jsonl \
   --output D:\data\vietnam-quant-research\pilot-v2\reports\factor_baseline.csv \
+  --validation-output D:\data\vietnam-quant-research\pilot-v2\reports\factor_baseline_validation.json \
   --oos-fraction 0.3 \
   --cost-bps 0,50,100
 ```
 
-上述第二条命令本轮没有执行，因为质量门槛失败。
+上述第二条命令本轮没有执行，因为质量门槛失败。质量门槛通过后，该命令会同时生成执行回测的 period CSV、成本汇总 JSON，以及收盘到收盘信号诊断的 validation JSON；验证 JSON 不能替代 `factor_ready` 门槛。
 
 ## 输出目录
 
@@ -127,7 +128,7 @@ quality report 的 `diagnostic_rows` 只保存带 structural/zero-volume 标记�
 1. 使用固定 50 只样本运行研究派生层，并分别记录 raw gate、research gate 和 `factor_ready`。
 2. 抽查 A32、APG 以及 ABR、ADP、ACE、ANT 的 quarantine 行和 source disagreement 样例。
 3. 用独立公司行动/复权参考确认 VCI/KBS 价格语义；确认前不运行基础因子。
-4. 价格语义确认且 `factor_ready=true` 后，才运行动量、反转、流动性、波动率基线。
+4. 价格语义确认且 `factor_ready=true` 后，才运行收盘到收盘的信号诊断和 next-available-open 执行动量、反转、流动性、波动率基线。
 5. 基础因子经过 0/50/100 bp、流动性过滤和 OOS 检验后，再决定是否扩展到 2050 只。
 6. 仍未解决 SSI 凭证、VSDC 状态、point-in-time 财报和批量存档授权问题。
 

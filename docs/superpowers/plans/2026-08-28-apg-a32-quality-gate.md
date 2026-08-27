@@ -32,7 +32,7 @@
 - Consumes: existing `quality_report.json`, `reconciliation_report.json`, `source_observations.jsonl`, `research_quality_report.json`, and `instrument_master.jsonl`.
 - Produces: a documented recovery scope with fixed sample symbols, date range, source configuration, and a before/after evidence checklist.
 
-- [ ] **Step 1: Read current metadata without modifying it**
+- [x] **Step 1: Read current metadata without modifying it**
 
 ```powershell
 Get-ChildItem D:\data\vietnam-quant-research\pilot-v2\metadata
@@ -40,14 +40,14 @@ Get-Content D:\data\vietnam-quant-research\pilot-v2\metadata\quality_report.json
 Get-Content D:\data\vietnam-quant-research\pilot-v2\metadata\research_quality_report.json
 ```
 
-- [ ] **Step 2: Confirm APG/A32 failure observations and sample membership**
+- [x] **Step 2: Confirm APG/A32 failure observations and sample membership**
 
 ```powershell
 Select-String -Path D:\data\vietnam-quant-research\pilot-v2\metadata\source_observations.jsonl -Pattern 'APG|A32|timeout|FAIL'
 Select-String -Path D:\data\vietnam-quant-research\pilot-v2\bronze\instrument_master.jsonl -Pattern 'APG|A32'
 ```
 
-- [ ] **Step 3: Record whether targeted recovery is safe**
+- [x] **Step 3: Record whether targeted recovery is safe**
 
 Use targeted APG/A32 recovery only if the existing sample, source priority, date interval, parser version, and schema version are unchanged. Otherwise rerun the fixed 50-stock sample to avoid mixing incompatible batches. Do not change the sample selection silently.
 
@@ -62,13 +62,13 @@ Use targeted APG/A32 recovery only if the existing sample, source priority, date
 - Consumes: the verified sample and source configuration from Task 1.
 - Produces: new raw snapshots, source observations, parsed price rows, arbitration output, and quality reports with request time, response status, parser/schema versions, and hashes.
 
-- [ ] **Step 1: Run the existing offline help and command contract**
+- [x] **Step 1: Run the existing offline help and command contract**
 
 ```powershell
 python exploration/02_daily_data_pipeline.py --help
 ```
 
-- [ ] **Step 2: Run the smallest authorized network recovery**
+- [x] **Step 2: Run the smallest authorized network recovery**
 
 Use the existing command shape and the verified fixed sample/date range. If the CLI cannot target APG/A32 without changing sample semantics, rerun all 50 selected stocks rather than inventing a one-off data path. Keep raw snapshots outside Git.
 
@@ -85,7 +85,7 @@ python exploration/02_daily_data_pipeline.py `
   --strict
 ```
 
-- [ ] **Step 3: Preserve failed requests as evidence**
+- [x] **Step 3: Preserve failed requests as evidence**
 
 For APG/A32, verify the final observation records contain endpoint, request parameters, retrieval time, HTTP status, latency, raw snapshot path, SHA-256, row count, parser/schema versions, and error/quality status. Do not treat timeout recovery as proof that historical coverage is correct.
 
@@ -100,15 +100,15 @@ For APG/A32, verify the final observation records contain endpoint, request para
 - Consumes: the replenished external data artifacts.
 - Produces: a compact before/after quality decision with APG/A32 status, row-level OHLC anomaly examples, zero-volume counts, source disagreement counts, quarantine counts, missing-date counts, and `factor_ready` status.
 
-- [ ] **Step 1: Compare gate dimensions by count and rate**
+- [x] **Step 1: Compare gate dimensions by count and rate**
 
 Check selected instruments, exchange coverage, source observation completion, duplicate identity keys, invalid OHLC, zero volume, research eligibility, tradability, cross-source missing dates, close differences, and unresolved price semantics.
 
-- [ ] **Step 2: Inspect APG/A32 row-level anomalies**
+- [x] **Step 2: Inspect APG/A32 row-level anomalies**
 
 For every remaining `invalid_ohlc`, `zero_volume`, `source_disagreement`, or quarantine record for APG/A32, retain the date and raw/normalized fields in the evidence output. Classify whether it is a source issue, a parser/unit issue, a corporate-action/adjustment issue, or a legitimate market state.
 
-- [ ] **Step 3: Decide whether the 50-stock gate passes**
+- [x] **Step 3: Decide whether the 50-stock gate passes**
 
 The gate passes only when the existing project requirements are met, including explicit source evidence, no unexplained structural price issues in factor inputs, auditable research eligibility, and independently confirmed price semantics. A recovered HTTP request alone is not sufficient.
 
@@ -122,12 +122,12 @@ The gate passes only when the existing project requirements are met, including e
 - Consumes: a minimal fixture reproducing the observed APG/A32 or gate-report defect.
 - Produces: a tested fix that preserves source evidence and does not couple tests to external data.
 
-- [ ] **Step 1: Write a failing fixture test for the specific discovered defect**
-- [ ] **Step 2: Run the targeted test and record the expected failure**
-- [ ] **Step 3: Implement the minimal production fix**
-- [ ] **Step 4: Run the targeted and full offline test suites**
+- [x] **Step 1: Write a failing fixture test for the specific discovered defect**
+- [x] **Step 2: Run the targeted test and record the expected failure**
+- [x] **Step 3: Implement the minimal production fix**
+- [x] **Step 4: Run the targeted and full offline test suites**
 
-If no code defect is found, leave production code unchanged and document that the recovery was data/runtime-only.
+If no further code defect is found, leave production code unchanged and document that the remaining recovery was data/runtime-only.
 
 ### Verification
 

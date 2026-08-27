@@ -3,7 +3,7 @@ from dataclasses import replace
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from vietnam_quant.pipeline import PipelineConfig, _listing_result, run_pipeline
+from vietnam_quant.pipeline import PipelineConfig, _estimate_count_back, _listing_result, run_pipeline
 from vietnam_quant.schemas import FetchResult, InstrumentRecord
 
 
@@ -36,6 +36,10 @@ def test_listing_retries_read_timeout(monkeypatch):
     assert result.status == "ok"
     assert result.attempts == 2
     assert adapter.attempts == 2
+
+
+def test_count_back_is_capped_for_long_daily_ranges():
+    assert _estimate_count_back(date(2018, 1, 1), date(2026, 8, 27)) == 2200
 
 
 class FakeAdapter:

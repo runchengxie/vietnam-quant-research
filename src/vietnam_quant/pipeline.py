@@ -70,6 +70,7 @@ _RETRYABLE_ERROR_TYPES = {
     "Timeout",
     "RequestException",
 }
+_MAX_DAILY_COUNT_BACK = 2200
 
 
 def _is_retryable(result: FetchResult) -> bool:
@@ -83,7 +84,8 @@ def _is_retryable(result: FetchResult) -> bool:
 
 def _estimate_count_back(start: date, end: date) -> int:
     calendar_days = (end - start).days + 1
-    return max(32, int(calendar_days * 1.7) + 10)
+    estimate = max(32, int(calendar_days * 1.7) + 10)
+    return min(estimate, _MAX_DAILY_COUNT_BACK)
 
 
 def _fetch_with_retries(adapter: Any, symbol: str, end: date, count_back: int, start: date, max_retries: int) -> FetchResult:

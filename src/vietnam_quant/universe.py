@@ -20,7 +20,12 @@ def select_sample(
     if sample_size < 0:
         raise ValueError("sample_size must be non-negative")
     quota_map = dict(DEFAULT_EXCHANGE_QUOTAS if quotas is None else quotas)
-    by_symbol = {record.symbol.upper(): record for record in instruments}
+    by_symbol = {
+        record.symbol.upper(): record
+        for record in instruments
+        if record.security_type is None
+        or str(record.security_type).upper() in {"STOCK", "EQUITY"}
+    }
     requested_edges = [symbol.upper() for symbol in edge_symbols]
     missing_edges = [symbol for symbol in requested_edges if symbol not in by_symbol]
     if missing_edges:

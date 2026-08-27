@@ -167,13 +167,13 @@ derived   = 复权价格、因子、信号、回测结果
 
 ## 下一步建议
 
-首个可执行里程碑是一个只读的 source-observation prototype：
+日频 source-observation pipeline 已经实现，并完成了一轮 50 只股票的 VCI/KBS 试点。当前应按以下顺序推进：
 
-1. 选择 20–50 个覆盖 HOSE/HNX/UPCoM 的股票；
-2. 分别用 vnstock 和一个公开/券商来源拉取同一段日线；
-3. 把原始响应、参数、时间、字段映射和差异报告保存到本地数据目录；
-4. 不把数据文件提交到公开 GitHub；
-5. 根据缺失率、复权差异、限流和授权反馈决定是否付费升级。
+1. 逐条诊断 `D:\data\vietnam-quant-research\pilot-v2\metadata\quality_report.json` 中的 invalid OHLC、zero volume 和超时证券；
+2. 解释 `reconciliation_report.json` 的日期缺失、收盘差异和 KBS 倒序口径；
+3. 重跑 50 只质量门槛，只有结构性错误可解释且默认因子输入不会静默使用异常行时，才运行基础因子；
+4. 基础因子通过交易成本、流动性和 OOS 检验后，再评估 2050 只扩展；
+5. 只有明确发现 point-in-time 基本面或执行微观结构是主要瓶颈时，才评估 FiinPro 或 Tick/Level 2。
 
-这一步完成前，不建议先购买高价 Tick、Level 2 或完整基本面套餐。
+试点尚未通过质量门槛，因此不应把当前结果作为 alpha 结论，也不应以此次公开访问证明批量长期存档或再分发授权。
 

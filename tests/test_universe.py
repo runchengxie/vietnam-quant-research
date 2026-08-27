@@ -35,3 +35,14 @@ def test_delisted_edge_case_keeps_delisted_status():
     age = next(row for row in sample if row.symbol == "AGE")
     assert age.exchange == "DELISTED"
     assert age.selection_reason == "edge_case"
+
+
+def test_select_sample_excludes_non_stock_instruments():
+    rows = make_listing_rows()
+    rows.append(rows[0].__class__(
+        instrument_id="vci:41B5G9000", symbol="41B5G9000", exchange_raw="HSX",
+        exchange="HOSE", security_type="FU", source="vci",
+        retrieved_at_utc=datetime(2026, 8, 27, tzinfo=timezone.utc),
+    ))
+    sample = select_sample(rows, sample_size=50)
+    assert "41B5G9000" not in {row.symbol for row in sample}

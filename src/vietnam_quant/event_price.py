@@ -22,7 +22,10 @@ def select_event_reference_date(event: CorporateActionEvent) -> tuple[date | Non
 
     if event.ex_date is not None:
         return event.ex_date, "ex_date"
-    if event.listing_date is not None and "listing" in event.event_type.lower():
+    event_type = event.event_type.lower()
+    if event.listing_date is not None and any(
+        marker in event_type for marker in ("listing", "share", "stock", "rights")
+    ):
         return event.listing_date, "listing_date"
     if event.announcement_date is not None:
         return event.announcement_date, "announcement_date_reference_only"
@@ -268,11 +271,17 @@ def write_event_price_reconciliation(
     """Persist event evidence without duplicating stable event IDs."""
 
     serialized = [report.to_dict() for report in reports]
-    jsonl_path = store.append_jsonl_many(
-        relative_jsonl,
-        serialized,
-        key="event_id",
-    )
+    existing = store.read_jsonl(relative_jsonl)
+    positions = {record.get("event_id"): index for index, record in enumerate(existing)}
+    merged = list(existing)
+    for record in serialized:
+        event_id = record.get("event_id")
+        if event_id in positions:
+            merged[positions[event_id]] = record
+        else:
+            positions[event_id] = len(merged)
+            merged.append(record)
+    jsonl_path = store.write_jsonl(relative_jsonl, merged)
     json_path = store.write_json(relative_json, {"entries": serialized})
     return jsonl_path, json_path
 

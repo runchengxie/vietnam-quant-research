@@ -41,6 +41,16 @@ def test_select_event_reference_date_uses_listing_date_for_new_shares():
     assert select_event_reference_date(event) == (date(2024, 8, 23), "listing_date")
 
 
+def test_select_event_reference_date_uses_listing_date_for_stock_rights_issue():
+    event = make_event(
+        event_type="stock_dividend_and_rights_issue",
+        listing_date=date(2021, 9, 9),
+        record_date=date(2021, 6, 22),
+    )
+
+    assert select_event_reference_date(event) == (date(2021, 9, 9), "listing_date")
+
+
 def test_select_event_reference_date_marks_announcement_only_as_reference_only():
     event = make_event(
         announcement_date=date(2024, 1, 2),

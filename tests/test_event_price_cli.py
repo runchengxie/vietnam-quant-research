@@ -1,6 +1,7 @@
 import json
 import subprocess
 import sys
+from dataclasses import replace
 from datetime import date
 
 from vietnam_quant.event_price import write_event_price_reconciliation
@@ -37,6 +38,19 @@ def test_write_event_price_reconciliation_is_idempotent(tmp_path):
     assert len(store.read_jsonl(paths[0])) == 1
     summary = (tmp_path / paths[1]).read_text(encoding="utf-8")
     assert '"entries"' in summary
+
+
+def test_write_event_price_reconciliation_updates_existing_event_without_duplicate(tmp_path):
+    store = ExternalDataStore(tmp_path)
+    original = make_report()
+    updated = replace(original, notes="Updated evidence.")
+
+    write_event_price_reconciliation(store, [original])
+    write_event_price_reconciliation(store, [updated])
+
+    records = store.read_jsonl("metadata/corporate_action_price_reconciliation.jsonl")
+    assert len(records) == 1
+    assert records[0]["notes"] == "Updated evidence."
 
 
 def test_event_price_cli_reads_bronze_and_writes_metadata_without_network(tmp_path):

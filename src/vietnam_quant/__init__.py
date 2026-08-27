@@ -2,6 +2,7 @@
 
 from .schemas import (
     CorporateActionEvent,
+    CorporateActionPriceReconciliation,
     CredentialStatus,
     FetchResult,
     InstrumentRecord,
@@ -15,6 +16,7 @@ from .schemas import (
 
 __all__ = [
     "CorporateActionEvent",
+    "CorporateActionPriceReconciliation",
     "CredentialStatus",
     "FetchResult",
     "InstrumentRecord",

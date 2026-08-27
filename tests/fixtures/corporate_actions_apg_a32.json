@@ -21,19 +21,23 @@
     "source_url": "https://cafef.vn/du-lieu/a32-1565341/a32-662019-ngay-gdkhq-tra-co-tuc-bang-tien-mat-700dcp.chn",
     "source_kind": "secondary_discovery",
     "confidence": "medium",
-    "notes": "Secondary discovery record; record and payment dates are not inferred."
+    "record_date": "2019-06-07",
+    "payment_date": "2019-06-20",
+    "notes": "Secondary discovery record; record and payment dates are stated by the source."
   },
   {
-    "event_id": "A32:2020-06-16:cash_dividend",
+    "event_id": "A32:2020-06-01:cash_dividend",
     "symbol": "A32",
     "exchange": "UPCoM",
     "event_type": "cash_dividend",
-    "ex_date": "2020-06-16",
+    "ex_date": "2020-06-01",
     "cash_amount_per_share": 700,
     "source_url": "https://cafef.vn/du-lieu/a32-1724014/a32-162020-ngay-gdkhq-tra-co-tuc-bang-tien-mat-700dcp.chn",
     "source_kind": "secondary_discovery",
     "confidence": "medium",
-    "notes": "Secondary discovery record; record and payment dates are not inferred."
+    "record_date": "2020-06-02",
+    "payment_date": "2020-06-16",
+    "notes": "Secondary discovery record; event dates are stated by the source."
   },
   {
     "event_id": "APG:2024-08-23:employee_shares",

@@ -2,6 +2,7 @@ from datetime import date, datetime, timezone
 
 from vietnam_quant.schemas import (
     CorporateActionEvent,
+    CorporateActionPriceReconciliation,
     InstrumentRecord,
     PriceDailyRecord,
     PriceSemanticAnchor,
@@ -78,6 +79,34 @@ def test_corporate_action_event_keeps_event_dates_and_provenance_separate():
     assert payload["payment_date"] is None
     assert payload["listing_date"] == "2021-09-09"
     assert payload["source_kind"] == "official"
+
+
+def test_corporate_action_price_reconciliation_serializes_nested_dates_without_adjustment():
+    report = CorporateActionPriceReconciliation(
+        event_id="A32:2020-06-01:cash_dividend",
+        symbol="A32",
+        event_type="cash_dividend",
+        reference_date=date(2020, 6, 1),
+        reference_date_kind="ex_date",
+        event_dates={
+            "announcement_date": None,
+            "ex_date": date(2020, 6, 1),
+            "record_date": date(2020, 6, 2),
+            "payment_date": date(2020, 6, 16),
+            "listing_date": None,
+        },
+        source_evidence={"vci": {"bars": []}},
+        cross_source={"difference_count": 0},
+        assessment="unresolved",
+        notes="Evidence only; no adjustment factor inferred.",
+    )
+
+    payload = report.to_dict()
+
+    assert payload["reference_date"] == "2020-06-01"
+    assert payload["event_dates"]["payment_date"] == "2020-06-16"
+    assert payload["assessment"] == "unresolved"
+    assert "adjustment_factor" not in payload
 
 
 def test_price_semantic_anchor_serializes_exchange_raw_evidence():

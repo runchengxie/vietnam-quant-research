@@ -34,25 +34,25 @@
 - Consumes: existing `CorporateActionEvent` and `SerializableMixin` contracts.
 - Produces: `CorporateActionPriceReconciliation`, with fields `event_id`, `symbol`, `event_type`, `reference_date`, `reference_date_kind`, `event_dates`, `source_evidence`, `cross_source`, `assessment`, and `notes`; nested dates must serialize through the existing `_serialize` helper.
 
-- [ ] **Step 1: Write failing tests for the corrected A32 event semantics and report serialization**
+- [x] **Step 1: Write failing tests for the corrected A32 event semantics and report serialization**
 
 Add tests that assert the A32 2020 fixture has `ex_date=2020-06-01`, `record_date=2020-06-02`, and `payment_date=2020-06-16`; assert the 2019 event has `record_date=2019-06-07` and `payment_date=2019-06-20`; and assert a `CorporateActionPriceReconciliation` serializes nested `event_dates` and keeps `assessment="unresolved"` without an adjustment field.
 
-- [ ] **Step 2: Run the focused tests and confirm the expected failure**
+- [x] **Step 2: Run the focused tests and confirm the expected failure**
 
 Run: `python -m pytest tests/test_corporate_actions.py tests/test_schemas.py -q`  
 Expected: FAIL because the current fixture has the 2020 payment date in `ex_date` and the new report contract does not yet exist.
 
-- [ ] **Step 3: Make the minimum fixture and schema changes**
+- [x] **Step 3: Make the minimum fixture and schema changes**
 
 Correct only the source-supported A32 dates in the fixture, add the frozen report dataclass with the exact fields above, and export it from `vietnam_quant.__init__`. Do not add an adjusted-price or inferred-ratio field.
 
-- [ ] **Step 4: Run the focused tests and confirm they pass**
+- [x] **Step 4: Run the focused tests and confirm they pass**
 
 Run: `python -m pytest tests/test_corporate_actions.py tests/test_schemas.py -q`  
 Expected: PASS.
 
-- [ ] **Step 5: Commit the contract and evidence-fixture correction**
+- [x] **Step 5: Commit the contract and evidence-fixture correction**
 
 ```text
 git add src/vietnam_quant/schemas.py src/vietnam_quant/__init__.py tests/test_schemas.py tests/test_corporate_actions.py tests/fixtures/corporate_actions_apg_a32.json

@@ -3,8 +3,39 @@ from dataclasses import replace
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from vietnam_quant.pipeline import PipelineConfig, run_pipeline
+from vietnam_quant.pipeline import PipelineConfig, _listing_result, run_pipeline
 from vietnam_quant.schemas import FetchResult, InstrumentRecord
+
+
+def test_listing_retries_read_timeout(monkeypatch):
+    class FlakyListingAdapter:
+        def __init__(self):
+            self.attempts = 0
+
+        def fetch_listing(self):
+            self.attempts += 1
+            if self.attempts == 1:
+                return FetchResult(
+                    status="error",
+                    endpoint="fake://listing",
+                    error_type="ReadTimeout",
+                    error_message="temporary timeout",
+                )
+            return FetchResult(
+                status="ok",
+                payload={"data": []},
+                response_status=200,
+                endpoint="fake://listing",
+            )
+
+    monkeypatch.setattr("vietnam_quant.pipeline.time.sleep", lambda _: None)
+    adapter = FlakyListingAdapter()
+
+    result = _listing_result(adapter, max_retries=2)
+
+    assert result.status == "ok"
+    assert result.attempts == 2
+    assert adapter.attempts == 2
 
 
 class FakeAdapter:

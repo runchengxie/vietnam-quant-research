@@ -36,8 +36,9 @@ def test_exchange_normalization_preserves_raw_value():
 def test_normalize_price_bars_keeps_raw_and_normalized_units():
     row = make_price_row(open=10, high=11, low=9, close=10.5)
     normalized = normalize_price_bars([row])[0]
-    assert normalized.raw_close == 0.0105
+    assert normalized.raw_close == 10.5
     assert normalized.normalized_close == 10.5
+    assert normalized.raw_price_unit == "VND"
 
 
 def test_arbitration_prefers_valid_primary_and_marks_tradability():
@@ -68,7 +69,7 @@ def test_arbitration_falls_back_to_valid_secondary_without_rewriting_bronze_row(
     assert rows[0].source == "kbs"
     assert rows[0].arbitration_reason == "secondary_fallback"
     assert rows[0].research_eligible is True
-    assert rows[0].raw_close == 0.01
+    assert rows[0].raw_close == 10
     assert report.fallback_count == 1
     assert invalid_primary.source == "vci"
     assert "invalid_ohlc" not in invalid_primary.quality_flags

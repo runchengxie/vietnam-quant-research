@@ -272,23 +272,22 @@ def main() -> int:
             kbs_by_date = {time_key(row.get("time")): row for row in kbs_rows}
             matched = sorted(set(vci_by_date) & set(kbs_by_date) - {None})
             close_diffs = []
-            close_diffs_scaled = []
+            close_diffs_vnd = []
             close_diffs_pct = []
             for day in matched:
                 vci_close = vci_by_date[day].get("close")
                 kbs_close = kbs_by_date[day].get("close")
                 if isinstance(vci_close, (int, float)) and isinstance(kbs_close, (int, float)):
                     close_diffs.append(round(abs(float(vci_close) - float(kbs_close)), 6))
-                    # Both public endpoints expose stock prices in thousand-VND raw units;
-                    # vnstock's KBS adapter divides the normalized result by 1000.
-                    vci_close_scaled = float(vci_close) / 1000
-                    kbs_close_scaled = float(kbs_close) / 1000
-                    scaled_diff = abs(vci_close_scaled - kbs_close_scaled)
-                    close_diffs_scaled.append(round(scaled_diff, 6))
+                    # Both public endpoints expose stock prices in VND raw units.
+                    vci_close_vnd = float(vci_close)
+                    kbs_close_vnd = float(kbs_close)
+                    vnd_diff = abs(vci_close_vnd - kbs_close_vnd)
+                    close_diffs_vnd.append(round(vnd_diff, 6))
                     close_diffs_pct.append(
                         round(
-                            scaled_diff
-                            / max(abs(vci_close_scaled), abs(kbs_close_scaled), 1e-9),
+                            vnd_diff
+                            / max(abs(vci_close_vnd), abs(kbs_close_vnd), 1e-9),
                             6,
                         )
                     )
@@ -302,10 +301,10 @@ def main() -> int:
                 },
                 "matched_trading_dates": len(matched),
                 "max_abs_close_difference_raw_units": max(close_diffs) if close_diffs else None,
-                "max_abs_close_difference_after_both_price_div_1000": max(close_diffs_scaled)
-                if close_diffs_scaled
+                "max_abs_close_difference_vnd": max(close_diffs_vnd)
+                if close_diffs_vnd
                 else None,
-                "max_relative_close_difference_after_scaling": max(close_diffs_pct)
+                "max_relative_close_difference": max(close_diffs_pct)
                 if close_diffs_pct
                 else None,
             }

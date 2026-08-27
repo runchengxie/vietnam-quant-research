@@ -147,7 +147,7 @@ parser_version: str
 schema_version: str
 ```
 
-VCI/KBS 当前适配器观察到的股票价格按千 VND 暴露；标准化值统一为 VND，同时永远保留原始值和原始单位。成交量不在未经来源确认时强行换算，`volume_unit` 写入来源口径或 `unknown`。
+VCI/KBS 当前适配器观察到的股票价格按 VND 暴露；raw 与 normalized 数值保持一致，同时永远保留原始值和原始单位。历史价格是否经过复权或其他修订不由单位字段推断，必须作为独立的未确认语义维度记录。成交量不在未经来源确认时强行换算，`volume_unit` 写入来源口径或 `unknown`。
 
 同一来源、同一证券、同一交易日只能有一条标准化记录。重复记录不静默覆盖，必须进入质量报告。
 
@@ -253,7 +253,7 @@ class SSIAdapter(MarketDataAdapter):
 - `high < max(open, close)`、`low > min(open, close)`、负价格或负成交量：标记 `invalid_ohlc`，保留原始行并在因子阶段默认排除。
 - `raw_volume == 0`：标记 `zero_volume`；它可能代表停牌或无成交，不填充为正常交易。
 - 原始顺序不是升序：记录 `reordered_source_rows`。
-- 价格单位换算：记录 `unit_converted_thousand_vnd`，不覆盖 raw 字段。
+- VCI/KBS 价格单位：按 VND 保存 raw 与 normalized 数值，不添加单位换算标记；复权语义单独核验。
 - `close == high` 或 `close == low`：记录 `boundary_price_proxy`。如果没有正式涨跌停字段，只能作为边界代理，不能声称是已确认涨跌停。
 - 所有质量判断必须关联 `source_observation_id`。
 
@@ -405,7 +405,7 @@ excluded_for_non_tradable
 - VCI 数组型响应解析；
 - KBS 容器解析、倒序排序和日期闭区间裁剪；
 - `count_back` 响应超出目标窗口时被严格裁剪；
-- 千 VND 转 VND 时 raw/normalized 字段同时保留；
+- VCI/KBS 价格按 VND 保存，raw/normalized 字段同时保留且数值一致；
 - 缺失、重复、负值、OHLC 关系异常和零成交产生正确质量标记；
 - source observation 包含请求参数、哈希、行数和 parser/schema 版本；
 - 动量特征只使用滞后数据；

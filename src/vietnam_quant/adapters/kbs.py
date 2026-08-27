@@ -35,7 +35,7 @@ def parse_kbs_ohlcv(
         source_dates.append(event_date)
         parsed.append((event_date, _record_from_values(
             row, symbol=symbol.upper(), source="kbs", exchange=exchange,
-            parser_version="kbs-ohlcv-v1", source_observation_id=source_observation_id,
+            parser_version="kbs-ohlcv-v2", source_observation_id=source_observation_id,
             event_date=event_date, event_time_utc=event_time_utc, event_time_raw=str(row.get("time")),
         )))
     reordered = source_dates != sorted(source_dates)

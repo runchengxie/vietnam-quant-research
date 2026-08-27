@@ -1,3 +1,4 @@
+import json
 from dataclasses import replace
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -68,3 +69,11 @@ def test_pipeline_continues_after_symbol_failure(tmp_path):
     assert (tmp_path / "metadata/source_observations.jsonl").exists()
     assert (tmp_path / "bronze/price_daily.jsonl").exists()
     assert report.price_row_count == 1
+    assert "entries" not in report.quality_report
+    instruments = [
+        json.loads(line)
+        for line in (tmp_path / "bronze/instrument_master.jsonl").read_text().splitlines()
+    ]
+    assert next(row for row in instruments if row["symbol"] == "GOOD")["selection_reason"] in {
+        "exchange_quota", "sample_fill"
+    }

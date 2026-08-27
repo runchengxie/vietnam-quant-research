@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-当前是 docs-first 仓库，并已加入一个只读的公开日线可得性 smoke test；它先回答“数据从哪里来、能拿到什么、成本多少、有哪些坑”，不提供生产采集器、交易策略或投资建议。价格和服务条款截至 2026-08-27 整理，购买或接入前需要重新向供应商核实。
+当前已从 docs-first smoke test 升级为可离线测试、可显式联网运行的日频数据闭环：保存 raw snapshot、instrument master、price daily、source observation、质量摘要和 VCI/KBS reconciliation。2026-08-27 的 50 只股票试点已完成采集，但质量门槛未通过，因此尚未生成可用于研究结论的基础因子结果，也未批准扩展到 2050 只。
 
 ## 文档
 
@@ -15,6 +15,8 @@
 - [越南专项量化文献地图](docs/literature-vietnam-specific.md)
 - [跨市场论文解读](docs/literature-cross-market.md)
 - [公开日线数据可得性审计](docs/exploration-data-audit.md)
+- [日频数据闭环 v0 验收报告](docs/daily-data-loop-v0.md)
+- [数据契约](docs/data-contracts.md)
 
 ## 研究边界
 
@@ -22,7 +24,7 @@
 
 ## 下一步
 
-当前的第一轮公开接口探针见 [`exploration/01_public_ohlcv_probe.py`](exploration/01_public_ohlcv_probe.py)，配套 notebook 见 [`exploration/01_data_audit.ipynb`](exploration/01_data_audit.ipynb)。下一阶段建议扩展为覆盖 HOSE、HNX、UPCoM 的 20–50 只股票的 source-observation prototype，比较公开源、SSI 与 VSDC 的日线、证券状态和外资字段，再决定是否购买基本面或机构级行情数据。运行数据应保存在仓库之外。
+旧的可得性探针见 [`exploration/01_public_ohlcv_probe.py`](exploration/01_public_ohlcv_probe.py)，当前闭环入口是 [`exploration/02_daily_data_pipeline.py`](exploration/02_daily_data_pipeline.py)，因子入口是 [`exploration/03_factor_baseline.py`](exploration/03_factor_baseline.py)。下一步应先修复并解释试点中的 OHLC、超时和跨源日期差异，再重跑质量门槛；在门槛通过前不购买 FiinPro、Tick/Level 2，也不把试点结果作为 alpha 结论。运行数据应保存在仓库之外。
 
 ## 本地数据目录
 
@@ -34,7 +36,8 @@ D:\\data\\vietnam-quant-research\\
 ├── bronze/     # 初步标准化数据
 ├── processed/  # 可供研究使用的数据集
 ├── metadata/   # 抓取记录、质量审计和 source observations
-└── logs/       # 运行日志
+├── logs/       # 运行日志
+└── reports/    # 因子结果和研究报告
 ```
 
 探针脚本会优先将审计摘要写入该目录的 `metadata/`；也可以通过 `--data-root` 或 `VIETNAM_QUANT_DATA_ROOT` 指定其他本地路径。仓库中的 `data/`、`artifacts/`、CSV、Parquet 等均已忽略，避免把市场原始数据提交到 GitHub。

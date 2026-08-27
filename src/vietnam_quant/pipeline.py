@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from collections import Counter
 from dataclasses import dataclass, replace
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -152,10 +153,18 @@ def run_pipeline(config: PipelineConfig, adapters: Mapping[str, MarketDataAdapte
     if not listing:
         return PipelineReport([], [], [], len(observations), 0, "FAIL", True, {}, {}, skipped_sources, "listing unavailable")
 
-    for instrument in listing:
-        store.append_jsonl("bronze/instrument_master.jsonl", instrument.to_dict(), key="instrument_id")
     selected = select_sample(
         listing, sample_size=config.sample_size, quotas=config.exchange_quotas, edge_symbols=config.edge_symbols
+    )
+    selected_by_symbol = {instrument.symbol: instrument for instrument in selected}
+    instrument_output = [
+        selected_by_symbol.get(instrument.symbol, instrument)
+        for instrument in listing
+    ]
+    store.append_jsonl_many(
+        "bronze/instrument_master.jsonl",
+        [instrument.to_dict() for instrument in instrument_output],
+        key="instrument_id",
     )
     selected_symbols = [record.symbol for record in selected]
     failed_symbols: list[str] = []
@@ -208,11 +217,28 @@ def run_pipeline(config: PipelineConfig, adapters: Mapping[str, MarketDataAdapte
                 else:
                     secondary_failed_symbols.append(instrument.symbol)
             quality = validate_price_bars(parsed)
-            for row in quality.rows:
-                store.append_jsonl("bronze/price_daily.jsonl", row.to_dict(), key=f"{row.source}:{row.symbol}:{row.trading_date.isoformat()}")
+            store.append_jsonl_many(
+                "bronze/price_daily.jsonl",
+                [row.to_dict() for row in quality.rows],
+                identity_fields=("source", "symbol", "trading_date"),
+            )
             price_row_count += len(quality.rows) if source == config.primary_source else 0
             source_rows[(source, instrument.symbol)] = quality.rows
-            quality_entries.append({'source': source, 'symbol': instrument.symbol, **quality.to_dict()})
+            diagnostic_flags = {"missing_required", "duplicate_date", "invalid_ohlc", "zero_volume"}
+            diagnostic_rows = [
+                row.to_dict()
+                for row in quality.rows
+                if diagnostic_flags & set(row.quality_flags)
+            ]
+            quality_entries.append({
+                'source': source,
+                'symbol': instrument.symbol,
+                'status': quality.status,
+                'issue_counts': quality.issue_counts,
+                'issue_count': quality.issue_count,
+                'diagnostic_row_count': len(diagnostic_rows),
+                'diagnostic_rows': diagnostic_rows,
+            })
             first_day = min((row.trading_date for row in quality.rows), default=None)
             last_day = max((row.trading_date for row in quality.rows), default=None)
             observation = _observation_from_result(
@@ -235,12 +261,26 @@ def run_pipeline(config: PipelineConfig, adapters: Mapping[str, MarketDataAdapte
 
     quality_status = "FAIL" if failed_symbols or any(entry.get("status") == "FAIL" for entry in quality_entries) else ("WARN" if quality_entries else "FAIL")
     strict_failed = bool(failed_symbols or not selected or quality_status == "FAIL")
-    store.write_json('metadata/quality_report.json', {'status': quality_status, 'entries': quality_entries})
+    quality_issue_counts: Counter[str] = Counter()
+    for entry in quality_entries:
+        quality_issue_counts.update(entry.get('issue_counts', {}))
+    quality_summary = {
+        'status': quality_status,
+        'entry_count': len(quality_entries),
+        'issue_counts': dict(sorted(quality_issue_counts.items())),
+        'diagnostic_row_count': sum(entry.get('diagnostic_row_count', 0) for entry in quality_entries),
+    }
+    store.write_json('metadata/quality_report.json', {'summary': quality_summary, 'entries': quality_entries})
     store.write_json('metadata/reconciliation_report.json', {'entries': reconciliation_entries})
+    reconciliation_summary = {
+        'entry_count': len(reconciliation_entries),
+        'warn_count': sum(entry.get('status') == 'WARN' for entry in reconciliation_entries),
+        'matched_dates': sum(entry.get('matched_dates', 0) for entry in reconciliation_entries),
+    }
     message = "primary source has failed symbols" if failed_symbols else None
     return PipelineReport(
         selected_symbols=selected_symbols, failed_symbols=failed_symbols, secondary_failed_symbols=secondary_failed_symbols,
         observation_count=len(observations), price_row_count=price_row_count, quality_status=quality_status,
-        strict_failed=strict_failed, quality_report={'status': quality_status, 'entries': quality_entries},
-        reconciliation_report={'entries': reconciliation_entries}, skipped_sources=sorted(set(skipped_sources)), message=message,
+        strict_failed=strict_failed, quality_report=quality_summary,
+        reconciliation_report=reconciliation_summary, skipped_sources=sorted(set(skipped_sources)), message=message,
     )

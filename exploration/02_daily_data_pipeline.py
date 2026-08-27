@@ -57,13 +57,14 @@ def main(argv: list[str] | None = None) -> int:
             for line in args.symbols_file.read_text(encoding="utf-8").splitlines()
             if line.strip() and not line.lstrip().startswith("#")
         )
+    sample_size = len(edge_symbols) if args.symbols_file else args.sample_size
     adapters = {"vci": VCIAdapter(), "kbs": KBSAdapter(), "ssi": SSIAdapter()}
     secondary = None if args.secondary_source == "none" else args.secondary_source
     config = PipelineConfig(
         data_root=Path(args.data_root),
         start=args.start,
         end=args.end,
-        sample_size=args.sample_size,
+        sample_size=sample_size,
         primary_source=args.primary_source,
         secondary_source=secondary,
         strict=args.strict,

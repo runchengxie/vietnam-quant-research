@@ -138,3 +138,9 @@ VCI 日线接口的请求体只有 `timeFrame`、`symbols`、`to` 和 `countBack
 4. 对 VCI/KBS 至少比较 10 只股票的 OHLC、成交量、成交额和复权/原始口径；
 5. 加入 SSI FastConnect 申请结果和 VSDC 外资 room/证券状态样本；
 6. 通过质量门槛后，再做文献中的 VN-3/VN-4、动量、流动性和跨市场指数研究。
+
+## v0 闭环试点更新
+
+2026-08-27 已用实现后的 pipeline 在外部目录 `D:\data\vietnam-quant-research\pilot-v2` 完成 50 只股票试点，覆盖 HOSE 30、HNX 10、UPCoM 10，并分别请求 VCI 和 KBS。完整结果、原始快照和哈希不进入仓库，摘要见[日频数据闭环 v0 验收报告](daily-data-loop-v0.md)。
+
+该批次得到 101 个 observations、171,447 条合并 `price_daily` 记录。质量门槛暂未通过：VCI 有 APG 和 A32 两次读超时，质量摘要包含 492 条 `invalid_ohlc`、10,452 条 `zero_volume`；跨源报告包含 3,095 条只在 primary 缺失的日期、10,882 条另一方向缺失日期和 16,869 条收盘差异记录。下一步是诊断和重跑，不是扩大到 2050 只或购买更高价数据。

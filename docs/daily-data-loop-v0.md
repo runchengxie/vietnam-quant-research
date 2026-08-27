@@ -52,9 +52,13 @@ D:\data\vietnam-quant-research\pilot-v2\
 ├── raw\kbs\2026-08-27\*.json
 ├── bronze\instrument_master.jsonl
 ├── bronze\price_daily.jsonl
+├── derived\research_price_daily.jsonl
 ├── metadata\source_observations.jsonl
 ├── metadata\quality_report.json
-└── metadata\reconciliation_report.json
+├── metadata\reconciliation_report.json
+├── metadata\source_arbitration_report.json
+├── metadata\price_semantics_report.json
+└── metadata\research_quality_report.json
 ```
 
 仓库只提交代码、fixture、数据契约和本报告，不提交这些 raw/bronze/metadata 文件。
@@ -91,6 +95,18 @@ D:\data\vietnam-quant-research\pilot-v2\
 
 quality report 的 `diagnostic_rows` 只保存带 structural/zero-volume 标记的日期和原始/标准化字段；完整 API 响应仍在 raw 快照中。
 
+## 研究派生层
+
+后续运行会在 `derived/research_price_daily.jsonl` 写入按 symbol/date 去重的研究记录。它不替代 bronze：
+
+- 有效 VCI 主源优先；VCI 缺失或 OHLC 无效时，使用有效 KBS 记录并记录 `secondary_fallback`；
+- 两源都无效时保留一条可追溯记录，但标记 `quarantined`、`research_eligible=false`；不填充、不修正；
+- 零成交记录保留，但 `tradable=false`；
+- 两源收盘价超过 0.1% 差异时标记 `source_disagreement`，原始两源数值仍在 bronze 和 raw 中保留；
+- `price_semantics_report.json` 将 VCI/KBS 的 raw/adjusted 口径状态保持为 `unresolved`，所以 `factor_ready` 在独立公司行动证据出现前仍为 false。
+
+`quality_report.json` 是原始摄取门槛，`research_quality_report.json` 是隔离异常后的研究可用率门槛；两者都必须在因子回测前读取，不能只看派生行数。
+
 ## 门槛判定
 
 | 门槛 | 判定 |
@@ -108,11 +124,11 @@ quality report 的 `diagnostic_rows` 只保存带 structural/zero-volume 标记�
 
 ## 下一步优先级
 
-1. 对 APG、A32 重新请求并诊断超时与低流动性/停牌状态。
-2. 抽查 492 条 `invalid_ohlc` 的具体日期、raw OHLC、成交量和两个来源。
-3. 分离日期缺失、价格单位/复权差异和真实停牌造成的 reconciliation WARN。
-4. 修正并重跑同样 50 只样本；只有质量门槛通过后才运行动量、反转、流动性、波动率基线。
+1. 使用固定 50 只样本运行研究派生层，并分别记录 raw gate、research gate 和 `factor_ready`。
+2. 抽查 A32、APG 以及 ABR、ADP、ACE、ANT 的 quarantine 行和 source disagreement 样例。
+3. 用独立公司行动/复权参考确认 VCI/KBS 价格语义；确认前不运行基础因子。
+4. 价格语义确认且 `factor_ready=true` 后，才运行动量、反转、流动性、波动率基线。
 5. 基础因子经过 0/50/100 bp、流动性过滤和 OOS 检验后，再决定是否扩展到 2050 只。
-6. 仍未解决 SSI 凭证、VSDC 状态、point-in-time 财报、公司行动复权和批量存档授权问题。
+6. 仍未解决 SSI 凭证、VSDC 状态、point-in-time 财报和批量存档授权问题。
 
 本报告是数据工程验收记录，不是投资建议，也不证明公开接口允许批量长期存档或再分发。

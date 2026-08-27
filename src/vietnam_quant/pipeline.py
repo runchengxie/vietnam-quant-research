@@ -10,7 +10,12 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from vietnam_quant.adapters import MarketDataAdapter
-from vietnam_quant.quality import reconcile_price_bars, validate_price_bars
+from vietnam_quant.quality import (
+    arbitrate_price_bars,
+    assess_research_quality,
+    reconcile_price_bars,
+    validate_price_bars,
+)
 from vietnam_quant.schemas import FetchResult, InstrumentRecord, PriceDailyRecord, SerializableMixin, SourceObservation
 from vietnam_quant.storage import ExternalDataStore
 from vietnam_quant.universe import select_sample
@@ -50,6 +55,11 @@ class PipelineReport(SerializableMixin):
     quality_report: dict[str, Any]
     reconciliation_report: dict[str, Any]
     skipped_sources: list[str]
+    research_quality_status: str = "FAIL"
+    research_row_count: int = 0
+    research_quarantined_row_count: int = 0
+    factor_ready: bool = False
+    research_report: dict[str, Any] = None
     message: str | None = None
 
 
@@ -151,7 +161,10 @@ def run_pipeline(config: PipelineConfig, adapters: Mapping[str, MarketDataAdapte
     store.append_jsonl("metadata/source_observations.jsonl", listing_observation.to_dict(), key="observation_id")
     observations.append(listing_observation)
     if not listing:
-        return PipelineReport([], [], [], len(observations), 0, "FAIL", True, {}, {}, skipped_sources, "listing unavailable")
+        return PipelineReport(
+            [], [], [], len(observations), 0, "FAIL", True, {}, {}, skipped_sources,
+            message="listing unavailable",
+        )
 
     selected = select_sample(
         listing, sample_size=config.sample_size, quotas=config.exchange_quotas, edge_symbols=config.edge_symbols
@@ -171,6 +184,9 @@ def run_pipeline(config: PipelineConfig, adapters: Mapping[str, MarketDataAdapte
     secondary_failed_symbols: list[str] = []
     price_row_count = 0
     source_rows: dict[tuple[str, str], list[PriceDailyRecord]] = {}
+    research_rows: list[PriceDailyRecord] = []
+    arbitration_reports = []
+    semantics_reports = []
     count_back = _estimate_count_back(config.start, config.end)
 
     sources = [config.primary_source]
@@ -258,6 +274,21 @@ def run_pipeline(config: PipelineConfig, adapters: Mapping[str, MarketDataAdapte
             if primary_rows is not None and secondary_rows is not None:
                 reconciliation = reconcile_price_bars(primary_rows, secondary_rows)
                 reconciliation_entries.append({'symbol': instrument.symbol, **reconciliation.to_dict()})
+        primary_rows = source_rows.get((config.primary_source, instrument.symbol), [])
+        secondary_rows = (
+            source_rows.get((config.secondary_source, instrument.symbol), [])
+            if config.secondary_source else []
+        )
+        selected_rows, arbitration_report, semantics_report = arbitrate_price_bars(
+            primary_rows,
+            secondary_rows,
+            primary_source=config.primary_source,
+            secondary_source=config.secondary_source,
+            symbol=instrument.symbol,
+        )
+        research_rows.extend(selected_rows)
+        arbitration_reports.append(arbitration_report)
+        semantics_reports.append(semantics_report)
 
     quality_status = "FAIL" if failed_symbols or any(entry.get("status") == "FAIL" for entry in quality_entries) else ("WARN" if quality_entries else "FAIL")
     strict_failed = bool(failed_symbols or not selected or quality_status == "FAIL")
@@ -277,10 +308,37 @@ def run_pipeline(config: PipelineConfig, adapters: Mapping[str, MarketDataAdapte
         'warn_count': sum(entry.get('status') == 'WARN' for entry in reconciliation_entries),
         'matched_dates': sum(entry.get('matched_dates', 0) for entry in reconciliation_entries),
     }
+    store.append_jsonl_many(
+        "derived/research_price_daily.jsonl",
+        [row.to_dict() for row in research_rows],
+        identity_fields=("symbol", "trading_date"),
+    )
+    semantics_status = "unresolved" if config.secondary_source and semantics_reports else "not_available"
+    research_summary = assess_research_quality(
+        arbitration_reports,
+        expected_symbols=selected_symbols,
+        observations=observations,
+        semantics_status=semantics_status,
+    )
+    store.write_json(
+        "metadata/source_arbitration_report.json",
+        {"entries": [report.to_dict() for report in arbitration_reports]},
+    )
+    store.write_json(
+        "metadata/price_semantics_report.json",
+        {"entries": [report.to_dict() for report in semantics_reports]},
+    )
+    store.write_json("metadata/research_quality_report.json", research_summary)
     message = "primary source has failed symbols" if failed_symbols else None
     return PipelineReport(
         selected_symbols=selected_symbols, failed_symbols=failed_symbols, secondary_failed_symbols=secondary_failed_symbols,
         observation_count=len(observations), price_row_count=price_row_count, quality_status=quality_status,
         strict_failed=strict_failed, quality_report=quality_summary,
-        reconciliation_report=reconciliation_summary, skipped_sources=sorted(set(skipped_sources)), message=message,
+        reconciliation_report=reconciliation_summary, skipped_sources=sorted(set(skipped_sources)),
+        research_quality_status=research_summary["status"],
+        research_row_count=len(research_rows),
+        research_quarantined_row_count=research_summary["quarantined_rows"],
+        factor_ready=research_summary["factor_ready"],
+        research_report=research_summary,
+        message=message,
     )

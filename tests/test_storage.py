@@ -59,3 +59,8 @@ def test_append_jsonl_many_writes_batch_without_duplicates(tmp_path):
         identity_fields=("source", "symbol", "trading_date"),
     )
     assert len(store.read_jsonl("bronze/price_daily.jsonl")) == 2
+
+
+def test_external_store_creates_derived_layout(tmp_path):
+    ExternalDataStore(tmp_path).ensure_layout()
+    assert (tmp_path / "derived").is_dir()

@@ -125,5 +125,5 @@ class ExternalDataStore:
         return self._write_atomic(relative_path, payload)
 
     def ensure_layout(self) -> None:
-        for relative in ("raw", "bronze", "metadata", "logs", "reports"):
+        for relative in ("raw", "bronze", "derived", "metadata", "logs", "reports"):
             (self.data_root / relative).mkdir(parents=True, exist_ok=True)

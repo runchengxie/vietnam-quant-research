@@ -50,6 +50,24 @@ class FakeAdapter:
         return parse_vci_ohlcv(payload, symbol, requested_start, requested_end, "pipeline")
 
 
+class FakeSecondaryAdapter(FakeAdapter):
+    source_name = "fake2"
+
+    def fetch_daily(self, symbol, end_date, count_back, start_date=None):
+        return FetchResult(
+            status="ok",
+            payload={"data": [{"t": 1704153600, "o": 100, "h": 103, "l": 99, "c": 102, "v": 1000}]},
+            response_status=200, endpoint=f"fake2://daily/{symbol}",
+        )
+
+    def parse_daily(self, payload, symbol, requested_start, requested_end):
+        from vietnam_quant.adapters.vci import parse_vci_ohlcv
+        return [
+            replace(row, source="fake2")
+            for row in parse_vci_ohlcv(payload, symbol, requested_start, requested_end, "pipeline")
+        ]
+
+
 def test_pipeline_continues_after_symbol_failure(tmp_path):
     report = run_pipeline(
         PipelineConfig(
@@ -77,3 +95,33 @@ def test_pipeline_continues_after_symbol_failure(tmp_path):
     assert next(row for row in instruments if row["symbol"] == "GOOD")["selection_reason"] in {
         "exchange_quota", "sample_fill"
     }
+
+
+def test_pipeline_writes_research_view_without_changing_bronze(tmp_path):
+    report = run_pipeline(
+        PipelineConfig(
+            data_root=tmp_path,
+            start=date(2024, 1, 1),
+            end=date(2024, 1, 31),
+            sample_size=1,
+            primary_source="fake",
+            secondary_source="fake2",
+            strict=False,
+            network=False,
+            rate_limit_seconds=0,
+        ),
+        adapters={"fake": FakeAdapter(), "fake2": FakeSecondaryAdapter()},
+    )
+    research = [
+        json.loads(line)
+        for line in (tmp_path / "derived/research_price_daily.jsonl").read_text().splitlines()
+    ]
+    bronze = [
+        json.loads(line)
+        for line in (tmp_path / "bronze/price_daily.jsonl").read_text().splitlines()
+    ]
+    assert len(research) == 1
+    assert len(bronze) == 2
+    assert report.research_quality_status in {"PASS", "PASS_WITH_QUARANTINE"}
+    assert report.factor_ready is False
+    assert json.loads((tmp_path / "metadata/price_semantics_report.json").read_text())

@@ -63,9 +63,29 @@ class PipelineReport(SerializableMixin):
     message: str | None = None
 
 
+_RETRYABLE_ERROR_TYPES = {
+    "ConnectionError",
+    "ConnectTimeout",
+    "ReadTimeout",
+    "Timeout",
+    "RequestException",
+}
+_MAX_DAILY_COUNT_BACK = 2200
+
+
+def _is_retryable(result: FetchResult) -> bool:
+    status_code = result.response_status or 0
+    return (
+        result.error_type in _RETRYABLE_ERROR_TYPES
+        or status_code == 429
+        or status_code >= 500
+    )
+
+
 def _estimate_count_back(start: date, end: date) -> int:
     calendar_days = (end - start).days + 1
-    return max(32, int(calendar_days * 1.7) + 10)
+    estimate = max(32, int(calendar_days * 1.7) + 10)
+    return min(estimate, _MAX_DAILY_COUNT_BACK)
 
 
 def _fetch_with_retries(adapter: Any, symbol: str, end: date, count_back: int, start: date, max_retries: int) -> FetchResult:
@@ -78,9 +98,7 @@ def _fetch_with_retries(adapter: Any, symbol: str, end: date, count_back: int, s
         except TypeError:
             result = adapter.fetch_daily(symbol, end, count_back)
         result = replace(result, attempts=attempts)
-        status_code = result.response_status or 0
-        retryable = result.error_type in {"ConnectionError", "Timeout", "RequestException"} or status_code == 429 or status_code >= 500
-        if not retryable or result.status == "ok" or attempts > max_retries:
+        if not _is_retryable(result) or result.status == "ok" or attempts > max_retries:
             break
         time.sleep(min(2 ** (attempts - 1), 8))
     return result
@@ -119,9 +137,7 @@ def _listing_result(adapter: Any, max_retries: int) -> FetchResult:
         attempts += 1
         result = adapter.fetch_listing()
         result = replace(result, attempts=attempts)
-        status_code = result.response_status or 0
-        retryable = result.error_type in {"ConnectionError", "Timeout", "RequestException"} or status_code == 429 or status_code >= 500
-        if not retryable or result.status == "ok" or attempts > max_retries:
+        if not _is_retryable(result) or result.status == "ok" or attempts > max_retries:
             break
         time.sleep(min(2 ** (attempts - 1), 8))
     return result

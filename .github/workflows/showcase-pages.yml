@@ -33,6 +33,12 @@ jobs:
           package-manager-cache: false
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: showcase-package-lock
+          path: site/package-lock.json
+          retention-days: 1
       - name: Test
         run: npm test -- --run
       - name: Typecheck

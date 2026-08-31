@@ -22,3 +22,8 @@ __pycache__/
 *.egg-info/
 .idea/
 .vscode/
+
+# Client showcase build artifacts
+site/node_modules/
+site/dist/
+site/.wrangler/

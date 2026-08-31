@@ -57,7 +57,7 @@ export const evidence: Evidence[] = [
   {
     id: 'fit-framework',
     type: 'judgment',
-    title: '策略适配评分是研究判断，不是收益预测',
+    title: '策略适配评分用于比较研究，不代表收益',
     summary: '评分综合考虑数据质量、可交易股票池、流动性、做空可用性、换手成本、容量、市场微观结构与潜在行为低效。高分只表示更适合工程化实施，不表示未来回报更高。',
     asOf: '2026-08-31',
   },

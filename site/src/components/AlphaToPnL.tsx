@@ -1,19 +1,19 @@
 const japanStages = [
-  ['Gross Alpha', '研究信号本身可能更薄'],
-  ['Trading Cost', '流动性与执行工具让成本更可控'],
-  ['Market Impact', '更容易通过分散与容量约束管理'],
-  ['Borrow / Hedge', '股票借贷和衍生品让风险结构更完整'],
-  ['Fill Constraints', '可成交性通常更稳定'],
-  ['Net Alpha', '更适合工业化兑现与扩容'],
+  ['毛 alpha', '信号强度可能较低'],
+  ['交易成本', '流动性和执行工具有助于控制成本'],
+  ['市场冲击', '可以通过分散持仓和容量约束管理'],
+  ['借券与对冲', '股票借贷和衍生品让风险管理更完整'],
+  ['成交约束', '通常更容易成交'],
+  ['净 alpha', '更适合规模化运行'],
 ]
 
 const vietnamStages = [
-  ['Gross Alpha', '结构性行为和资金流信号可能更明显'],
-  ['Trading Cost', '换手越高，折损越快'],
-  ['Market Impact', '单票流动性与集中度更容易成为瓶颈'],
-  ['Borrow / Hedge', '股票 short leg 的实务可用性有限'],
-  ['Limit / Fill', '极端信号时成交概率可能反而下降'],
-  ['Net Alpha', '低换手与 long-biased 架构更重要'],
+  ['毛 alpha', '行为和资金流信号可能更明显'],
+  ['交易成本', '换手越高，成本折损越快'],
+  ['市场冲击', '单只股票的流动性和持仓集中度容易成为瓶颈'],
+  ['借券与对冲', '普通股票的做空腿在实务中可用性有限'],
+  ['涨跌停与成交', '信号最强时，成交概率可能下降'],
+  ['净 alpha', '低换手和偏多组合更重要'],
 ]
 
 function Funnel({ title, stages }: { title: string; stages: string[][] }) {
@@ -24,10 +24,10 @@ export function AlphaToPnL() {
   return (
     <section className="section" id="alpha-to-pnl">
       <div className="section-heading">
-        <div><span className="section-index">03</span><h2>Alpha 到 PnL，中间隔着一整条现实世界</h2></div>
-        <p>回测发现信号只是开始。真正的比较对象应当是实施折损后的净 alpha，而不是最漂亮的 gross curve。</p>
+        <div><span className="section-index">03</span><h2>从 alpha 到收益，中间还有交易现实</h2></div>
+        <p>回测只能说明信号潜在有效。比较市场时，还要扣除交易成本、市场冲击、借券和成交约束。</p>
       </div>
-      <div className="pnl-grid"><Funnel title="Japan · 更薄的信号，更低的实现摩擦" stages={japanStages} /><Funnel title="Vietnam · 更明显的低效，更高的实现折损" stages={vietnamStages} /></div>
+      <div className="pnl-grid"><Funnel title="日本 · 信号较薄，实现摩擦较低" stages={japanStages} /><Funnel title="越南 · 低效更明显，实现折损更高" stages={vietnamStages} /></div>
     </section>
   )
 }

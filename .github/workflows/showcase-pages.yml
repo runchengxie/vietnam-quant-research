@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: quant-showcase-${{ github.ref }}
@@ -27,18 +27,28 @@ jobs:
         working-directory: site
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           package-manager-cache: false
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Upload generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: showcase-package-lock
-          path: site/package-lock.json
-          retention-days: 1
+      - name: Bootstrap showcase lockfile
+        if: github.event_name == 'pull_request' && github.head_ref == 'codex/japan-vietnam-showcase'
+        working-directory: .
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          if [ -z "$(git status --porcelain -- site/package-lock.json)" ]; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/package-lock.json
+          git commit -m "build: lock showcase dependencies"
+          git push origin "HEAD:${HEAD_BRANCH}"
       - name: Test
         run: npm test -- --run
       - name: Typecheck

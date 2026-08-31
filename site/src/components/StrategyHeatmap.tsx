@@ -12,7 +12,7 @@ const categories: Array<{ id: 'all' | StrategyCategory; label: string }> = [
   { id: 'frequency', label: '频率' },
   { id: 'portfolio', label: '组合结构' },
   { id: 'model', label: '模型' },
-  { id: 'alpha', label: 'Alpha 来源' },
+  { id: 'alpha', label: '信号来源' },
   { id: 'capacity', label: '资金与容量' },
 ]
 
@@ -34,7 +34,7 @@ export function StrategyHeatmap({ rows, evidence }: StrategyHeatmapProps) {
     <section className="section" id="strategy-fit">
       <div className="section-heading">
         <div><span className="section-index">01</span><h2>策略适配度矩阵</h2></div>
-        <p>先看“什么更适合跑”，再看“为什么”。分数衡量实施适配度，不衡量未来收益。</p>
+        <p>先看适合哪些策略，再查看判断依据。分数表示实施适配度，不代表未来收益。</p>
       </div>
       <div className="filter-row" aria-label="策略分类筛选">
         {categories.map((item) => (
@@ -43,7 +43,7 @@ export function StrategyHeatmap({ rows, evidence }: StrategyHeatmapProps) {
       </div>
       <div className="matrix-wrap">
         <table className="matrix">
-          <thead><tr><th>策略类型</th><th>Japan</th><th>Vietnam</th><th>判断</th><th>依据</th></tr></thead>
+          <thead><tr><th>策略类型</th><th>日本</th><th>越南</th><th>判断</th><th>依据</th></tr></thead>
           <tbody>
             {filtered.map((row) => (
               <tr key={row.id}>
@@ -51,7 +51,7 @@ export function StrategyHeatmap({ rows, evidence }: StrategyHeatmapProps) {
                 <td><Score value={row.japan} label={`${row.label}，日本适配度 ${row.japan} / 5`} /></td>
                 <td><Score value={row.vietnam} label={`${row.label}，越南适配度 ${row.vietnam} / 5`} /></td>
                 <td><span className="verdict">{row.verdict}</span></td>
-                <td><button className="text-button" onClick={() => setSelected(row)} aria-label={`查看 ${row.label} 的依据`}>展开 →</button></td>
+                <td><button className="text-button" onClick={() => setSelected(row)} aria-label={`查看 ${row.label} 的依据`}>查看依据 →</button></td>
               </tr>
             ))}
           </tbody>

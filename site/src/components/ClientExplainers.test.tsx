@@ -15,7 +15,7 @@ describe('client explainers', () => {
 
   it('states the Vietnam research gate and the Japan private-strategy boundary', () => {
     render(<MaturityCompare />)
-    expect(screen.getByText(/越南.*研究门槛.*尚未/i)).toBeInTheDocument()
+    expect(screen.getByText(/越南.*尚未达到已验证 alpha 的研究门槛/i)).toBeInTheDocument()
     expect(screen.getByText(/日本.*私有策略.*收益/i)).toBeInTheDocument()
   })
 

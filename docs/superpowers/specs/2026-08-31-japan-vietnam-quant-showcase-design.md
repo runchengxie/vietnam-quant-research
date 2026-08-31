@@ -127,6 +127,15 @@ site/
 
 部署配置放在仓库级 `.github/workflows/` 和 `site/` 内的 Cloudflare 配置中。
 
+### 4.3 URL 与构建产物约束
+
+第一版不引入客户端路由，仅使用单页 section/anchor 导航。Vite 使用相对资源基址 `base: "./"`，因此同一个 `site/dist/` 可以同时部署到：
+
+- GitHub Pages 的 `/vietnam-quant-research/` 子路径；
+- Cloudflare Workers Static Assets 的站点根路径。
+
+不得为了两个平台维护两套构建结果。若未来加入 history-based client routing，再重新设计 base path 与 fallback 规则。
+
 ## 5. 数据模型
 
 展示页面使用静态 TypeScript 数据，不从远端 API 动态拉取。
@@ -351,6 +360,8 @@ Market + Flow + Behavior
 
 目标风格：研究型、克制、客户可读，不做传统券商 PPT 风格。
 
+语言以中文为主，保留 `Market Neutral`、`Stat Arb`、`Cross-sectional`、`Alpha`、`Execution` 等必要英文技术标签；本期不引入完整中英双语 i18n。
+
 原则：
 
 - Japan 与 Vietnam 使用稳定的双市场视觉编码；
@@ -387,16 +398,16 @@ Market + Flow + Behavior
 6. 上传 `site/dist`；
 7. deploy Pages。
 
-Vite `base` 必须支持仓库子路径 `/vietnam-quant-research/`。
+Vite 使用 `base: "./"`，确保部署到 GitHub Pages 仓库子路径时资源地址仍然有效。
 
 ### 9.2 Cloudflare
 
-本期目标是 Cloudflare Workers Static Assets，仍然只发布同一个 `site/dist`。
+本期目标是 Cloudflare Workers Static Assets，直接发布同一个 `site/dist`，不重新构建。
 
 如果 Cloudflare 凭证/连接在实现阶段不可用，则：
 
 - 仍提交可运行的 Wrangler 配置；
-- GitHub Pages 作为无需额外账户写权限的第一部署目标；
+- GitHub Pages 作为无需额外 Cloudflare 写权限的第一部署目标；
 - PR 中明确标记 Cloudflare 实际部署是否完成。
 
 未来若独立成 `quant-market-showcase`，Cloudflare 可变成主域名入口，GitHub Pages 作为公开镜像/备用。
@@ -410,7 +421,7 @@ Vite `base` 必须支持仓库子路径 `/vietnam-quant-research/`。
 - strategy fit 数据评分必须在 1–5；
 - 所有 `evidenceIds` 均存在；
 - Fact 类型 evidence 必须包含 source 与 as-of；
-- 私有实现相关条目不能包含禁止字段；
+- 日本 implementation status 不包含私有仓库 URL、实际持仓、策略参数或收益数据；
 - Capital Profile 切换规则返回预期推荐；
 - 页面渲染基本 smoke test。
 

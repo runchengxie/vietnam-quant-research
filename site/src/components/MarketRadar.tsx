@@ -1,6 +1,11 @@
-import * as echarts from 'echarts'
+import { RadarChart } from 'echarts/charts'
+import { LegendComponent, RadarComponent, TooltipComponent } from 'echarts/components'
+import * as echarts from 'echarts/core'
+import { SVGRenderer } from 'echarts/renderers'
 import { useEffect, useRef } from 'react'
 import type { MarketProfile } from '../data/types'
+
+echarts.use([RadarChart, RadarComponent, TooltipComponent, LegendComponent, SVGRenderer])
 
 export function MarketRadar({ profiles }: { profiles: MarketProfile[] }) {
   const chartRef = useRef<HTMLDivElement>(null)

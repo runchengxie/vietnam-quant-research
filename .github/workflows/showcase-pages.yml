@@ -26,12 +26,11 @@ jobs:
       run:
         working-directory: site
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: site/package.json
+          package-manager-cache: false
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Test
@@ -45,9 +44,21 @@ jobs:
           ! grep -R "guan-japanese-nira" dist
           grep -Eq '(src|href)="\./assets/' dist/index.html
 
+  python-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install package and test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Run Python tests
+        run: python -m pytest -q
+
   deploy-pages:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: validate
+    needs: [validate, python-baseline]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -57,10 +68,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
+          package-manager-cache: false
       - name: Install dependencies
         working-directory: site
         run: npm install --no-audit --no-fund

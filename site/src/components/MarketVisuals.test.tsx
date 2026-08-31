@@ -14,14 +14,14 @@ describe('market visual explainers', () => {
 
   it('explains implementation haircut without invented bps performance claims', () => {
     const { container } = render(<AlphaToPnL />)
-    expect(screen.getAllByText('Gross Alpha')).toHaveLength(2)
-    expect(screen.getAllByText('Net Alpha')).toHaveLength(2)
+    expect(screen.getAllByText('毛 alpha')).toHaveLength(2)
+    expect(screen.getAllByText('净 alpha')).toHaveLength(2)
     expect(container.textContent).not.toMatch(/\d+\s*bps|年化\s*\d+%/i)
   })
 
   it('shows both strategy pipelines end to end', () => {
     render(<ArchitectureCompare />)
-    expect(screen.getByText('Residual Return Forecast')).toBeInTheDocument()
-    expect(screen.getByText('Optional Index Futures Hedge')).toBeInTheDocument()
+    expect(screen.getByText('残差收益预测')).toBeInTheDocument()
+    expect(screen.getByText('可选：指数期货对冲')).toBeInTheDocument()
   })
 })

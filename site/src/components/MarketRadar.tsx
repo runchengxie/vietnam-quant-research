@@ -2,7 +2,7 @@ import { RadarChart } from 'echarts/charts'
 import { LegendComponent, RadarComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { MarketProfile } from '../data/types'
 
 echarts.use([RadarChart, RadarComponent, TooltipComponent, LegendComponent, SVGRenderer])
@@ -11,17 +11,27 @@ export function MarketRadar({ profiles }: { profiles: MarketProfile[] }) {
   const chartRef = useRef<HTMLDivElement>(null)
   const japan = profiles.find((profile) => profile.id === 'japan')!
   const vietnam = profiles.find((profile) => profile.id === 'vietnam')!
+  const [theme, setTheme] = useState(() => document.documentElement.dataset.theme ?? 'light')
+
+  useEffect(() => {
+    const updateTheme = () => setTheme(document.documentElement.dataset.theme ?? 'light')
+    window.addEventListener('themechange', updateTheme)
+    return () => window.removeEventListener('themechange', updateTheme)
+  }, [])
 
   useEffect(() => {
     if (!chartRef.current || navigator.userAgent.toLowerCase().includes('jsdom')) return
     const chart = echarts.init(chartRef.current, undefined, { renderer: 'svg' })
     chart.setOption({
       tooltip: {},
-      legend: { data: [japan.label, vietnam.label], bottom: 0, textStyle: { color: '#9ca7b8' } },
+      color: ['#1f5eff', '#d88619'],
+      legend: { data: [japan.label, vietnam.label], bottom: 0, textStyle: { color: theme === 'dark' ? '#aab5c4' : '#526174' } },
       radar: {
         radius: '64%',
         indicator: japan.scores.map((item) => ({ name: item.label, max: 5 })),
-        axisName: { color: '#b7c0cf', fontSize: 12 },
+        axisName: { color: theme === 'dark' ? '#b7c0cf' : '#526174', fontSize: 12 },
+        splitArea: { areaStyle: { color: theme === 'dark' ? ['#101d2a', '#0d1823'] : ['#fbfaf5', '#f4f1e8'] } },
+        splitLine: { lineStyle: { color: theme === 'dark' ? '#2b3a4b' : '#cfd5dd' } },
         splitNumber: 5,
       },
       series: [{
@@ -35,7 +45,7 @@ export function MarketRadar({ profiles }: { profiles: MarketProfile[] }) {
     const resize = () => chart.resize()
     window.addEventListener('resize', resize)
     return () => { window.removeEventListener('resize', resize); chart.dispose() }
-  }, [japan, vietnam])
+  }, [japan, vietnam, theme])
 
   return (
     <section className="section" id="market-structure">

@@ -6,6 +6,17 @@
 
 当前已从 docs-first smoke test 升级为可离线测试、可显式联网运行的日频数据闭环：保存 raw snapshot、instrument master、price daily、source observation、质量摘要、VCI/KBS reconciliation，以及不改写 bronze 的研究派生视图。研究视图会隔离 invalid OHLC、标记零成交不可交易、记录来源仲裁和未确认的价格语义；事件—价格核对 CLI 可在外部 data root 生成只读公司行动证据。2026-08-27 的 50 只股票试点原始质量门槛未通过，因此尚未生成可用于研究结论的基础因子结果，也未批准扩展到 2050 只。
 
+## 日本 vs 越南量化展示
+
+`site/` 是一个可独立迁移的客户展示层，用可视化方式比较日本与越南市场的量化策略适配度、市场结构、Alpha→PnL 实施摩擦、推荐策略架构和资金规模差异。
+
+展示层与研究代码解耦：日本只作为跨市场比较参照，不引入私有 `guan-japanese-nira` 作为依赖；页面不公开日本私有策略参数、持仓、收益或交易候选。所有 1–5 评分都明确属于研究判断，不代表未来收益预测。越南侧继续遵守本仓库当前 research gate，不把尚未通过质量门槛的试点包装成已验证 alpha。
+
+开发与部署说明见 [`site/README.md`](site/README.md)。设计与实现计划见：
+
+- [`docs/superpowers/specs/2026-08-31-japan-vietnam-quant-showcase-design.md`](docs/superpowers/specs/2026-08-31-japan-vietnam-quant-showcase-design.md)
+- [`docs/superpowers/plans/2026-08-31-japan-vietnam-quant-showcase.md`](docs/superpowers/plans/2026-08-31-japan-vietnam-quant-showcase.md)
+
 ## 文档
 
 - [数据源与接口能力](docs/data-sources-overview.md)

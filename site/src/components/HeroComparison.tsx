@@ -14,7 +14,7 @@ export function HeroComparison() {
             <div className="market-card__topline"><span>JP</span><span>日本</span></div>
             <h2>弱信号，强工程</h2>
             <p className="formula">Small Alpha × Broad Universe × Long/Short × High Capacity</p>
-            <p>更适合 market neutral、stat arb、ML cross-sectional 与大资金系统化管理。</p>
+            <p>更适合市场中性、统计套利、机器学习横截面选股和大资金系统化管理。</p>
           </article>
           <article className="market-card market-card--vietnam">
             <div className="market-card__topline"><span>VN</span><span>越南</span></div>

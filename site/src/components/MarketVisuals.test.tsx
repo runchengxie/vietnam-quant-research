@@ -8,14 +8,14 @@ import { marketProfiles } from '../data/marketComparison'
 describe('market visual explainers', () => {
   it('keeps radar dimensions visible as text', () => {
     render(<MarketRadar profiles={marketProfiles} />)
-    expect(screen.getByText('流动性')).toBeInTheDocument()
-    expect(screen.getByText('行为低效')).toBeInTheDocument()
+    expect(screen.getAllByText('流动性')).toHaveLength(2)
+    expect(screen.getAllByText('行为低效').length).toBeGreaterThanOrEqual(2)
   })
 
   it('explains implementation haircut without invented bps performance claims', () => {
     const { container } = render(<AlphaToPnL />)
-    expect(screen.getByText('Gross Alpha')).toBeInTheDocument()
-    expect(screen.getByText('Net Alpha')).toBeInTheDocument()
+    expect(screen.getAllByText('Gross Alpha')).toHaveLength(2)
+    expect(screen.getAllByText('Net Alpha')).toHaveLength(2)
     expect(container.textContent).not.toMatch(/\d+\s*bps|年化\s*\d+%/i)
   })
 

@@ -4,7 +4,7 @@ export function HeroComparison() {
   return (
     <header className="hero">
       <div className="hero__inner">
-        <div className="hero__meta"><div className="eyebrow">QUANT MARKET FIT · JAPAN × VIETNAM · 2026-08-31</div><ThemeToggle /></div>
+        <div className="hero__meta"><div className="eyebrow">量化策略适配度 · 日本 × 越南 · 2026-08-31</div><ThemeToggle /></div>
         <h1>同样是股票量化，两个市场需要两套策略 DNA</h1>
         <p className="hero__lede">
           这份研究面向不熟悉量化的读者，比较两个市场的策略适配度。核心问题是：哪些 alpha 值得研究，以及它们能否在真实交易中兑现。

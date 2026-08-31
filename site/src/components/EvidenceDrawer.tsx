@@ -27,8 +27,8 @@ export function EvidenceDrawer({ row, evidence, onClose }: EvidenceDrawerProps) 
           <button className="icon-button" onClick={onClose} aria-label="关闭依据">×</button>
         </div>
         <div className="rationale-grid">
-          <div><strong>Japan · {row.japan}/5</strong><p>{row.japanRationale}</p></div>
-          <div><strong>Vietnam · {row.vietnam}/5</strong><p>{row.vietnamRationale}</p></div>
+          <div><strong>日本 · {row.japan}/5</strong><p>{row.japanRationale}</p></div>
+          <div><strong>越南 · {row.vietnam}/5</strong><p>{row.vietnamRationale}</p></div>
         </div>
         <div className="evidence-list">
           {items.map((item) => (
@@ -37,7 +37,7 @@ export function EvidenceDrawer({ row, evidence, onClose }: EvidenceDrawerProps) 
               <h4>{item.title}</h4>
               <p>{item.summary}</p>
               {item.sourceUrl && item.sourceName ? <a href={item.sourceUrl} target="_blank" rel="noreferrer">{item.sourceName} ↗</a> : null}
-              {item.asOf ? <small>as of {item.asOf}</small> : null}
+              {item.asOf ? <small>截至 {item.asOf}</small> : null}
             </article>
           ))}
         </div>

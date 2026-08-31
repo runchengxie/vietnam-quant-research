@@ -11,7 +11,7 @@ export function CapitalProfile({ profiles }: { profiles: CapitalProfileData[] })
         {profiles.map((profile) => <button key={profile.id} className={selected.id === profile.id ? 'segmented__button segmented__button--active' : 'segmented__button'} onClick={() => setSelectedId(profile.id)}>{profile.label}</button>)}
       </div>
       <div className="capital-panel">
-        <div className="capital-panel__lead"><span>MARKET FIT</span><h3>{selected.headline}</h3><p>{selected.explanation}</p></div>
+        <div className="capital-panel__lead"><span>市场适配度</span><h3>{selected.headline}</h3><p>{selected.explanation}</p></div>
         <div className="fit-bars">
           <div><span>日本</span><div className="fit-track"><i style={{ width: `${selected.japanFit * 20}%` }} /></div><b>{selected.japanFit}/5</b></div>
           <div><span>越南</span><div className="fit-track"><i style={{ width: `${selected.vietnamFit * 20}%` }} /></div><b>{selected.vietnamFit}/5</b></div>
